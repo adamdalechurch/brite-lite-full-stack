@@ -17,6 +17,7 @@
   ],
   "author": "Adam Church",
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "three": "^0.164.1"
   }
 }
