@@ -3,7 +3,6 @@ import * as THREE from 'three';
 
 import { shapes, adjustPosToFixedGrid } from './shapes.js';
 
-import { xCOEFF, yCOEFF, cylinderGeometry, flatRectangleGeometry, PEG_RADIUS } from './geometries.js';
 let isDirty = false;
 
 function drawBoard( pegs, scene ) {
@@ -61,12 +60,15 @@ function removeShapeAtMousePosition( event, state ) {
 
 function drawShape( position, state, isPreview = false, adding = true) {
     const selectedShape = state.selectedOptions.shape;
-    const selectedColor = state.selectedOptions.color;
     const pegs = state.pegs;
 
-    const color = parseInt( selectedColor.substring( 1 ), 16 );
+    let nonPreviewPegs = pegs.filter( peg => !peg.userData.isPreview );
 
-    const newPegs = shapes[ selectedShape ].draw( position, state, isPreview );
+    const newPegs = shapes[ selectedShape ].draw( position, state, isPreview )
+    .filter( peg => {
+        let tooClose = nonPreviewPegs.find( p => p.position.distanceTo( peg.position ) == 0 );
+        return !tooClose;
+    });
 
     if(adding){
         return [
@@ -74,10 +76,10 @@ function drawShape( position, state, isPreview = false, adding = true) {
             ...newPegs.filter( peg => peg )
         ];
     } else {
-        return [   
+        return [
             ...pegs.map( peg => {
-                let newPeg = newPegs.find( p => p && p.position.distanceTo(peg.position) < PEG_RADIUS);
-                
+                let newPeg = newPegs
+                                
                 if(newPeg){
                     peg.userData.removed = true;
                }
@@ -128,8 +130,6 @@ function handleIt( event, state, isPreview = false) {
 }
 
 function handleRemove( event, state ) {
-    const { camera, scene, pegboard, pegs } = state;
-    
     state.pegs = removeShapeAtMousePosition( event, state );
 
     // add preview of the shape to be removed:
