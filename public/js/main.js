@@ -13,7 +13,7 @@ import {
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
-let refireTimeout, holdingCtrl = false;
+let refireTimeout;
 
 const REFIRE_TIMEOUT_MS = 100;
 
@@ -39,9 +39,31 @@ let state = {
     }
 };
 
+function copyToClipboard( text ) {
+    const el = document.createElement( 'textarea' );
+    el.value = text;
+    document.body.appendChild( el );
+    el.select();
+    document.execCommand( 'copy' );
+    document.body.removeChild( el );
+    alert( 'URL copied to clipboard' );
+}
+
+function makeURL( id ) {
+    return `${window.location.origin}/art/${id}`;
+}
+
 function getIdFromURL() {
     const url = new URL( window.location.href );
-    return url.searchParams.get( 'id' );
+
+    // url is now: /art/:id
+    const parts = url.pathname.split( '/' );
+
+    if(parts.length > 2) {
+        return parts[2];
+    }
+
+    return
 }
 
 function getStateById( id ) {
@@ -78,7 +100,11 @@ function saveState() {
                 color: peg.material.color.getHexString()
             }))
         ] )
-    }).then( res => res.json() );
+    })
+    .then( res => res.json() )
+    .then( res => {
+        copyToClipboard( makeURL( res.id ) );
+    });
 }   
 
 // init the game:
@@ -168,20 +194,6 @@ function handleMain( event, state, isPreview = false) {
             state = handleMain( event, state, isPreview );
         }, REFIRE_TIMEOUT_MS );
     }
-}
-
-function handleRemoveMain( event, state ) {
-    stateHistory.push( {...state } );
-    state = handleRemove( event, state );
-}
-
-function clearAllPegs() {
-    state = { ...state, pegs: state.pegs.map( peg => {
-        peg.userData.removed = true;
-        return peg;
-    }), isDirty: true };
-
-    return state.pegs;
 }
 
 function initGUI( state ) {
