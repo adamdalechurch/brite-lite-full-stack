@@ -9,25 +9,6 @@ import {
 
 import * as THREE from 'three';
 
-const shapes = {
-    point: {
-        name: 'point',
-        draw: addPoint,
-    },
-    circle: {
-        name: 'circle',
-        draw: addCircle,
-    },
-    rectangle: {
-        name: 'rectangle',
-        draw: addRectangle,
-    },
-    triangle: {
-        name: 'triangle',
-        draw: addTriangle,
-    }
-}
-
 const RAINBOW_COLORS = [
     'ff0000',
     'ff7f00',
@@ -41,13 +22,13 @@ const RAINBOW_COLORS = [
 let pegMaterials, lastPreviewColor = 'ff0000';
 
 function addCircle( position, state, isPreview = false ) {
-    const { pegs, selectedOptions } = state;
-    const { radius, filled } = selectedOptions;
+    const { shape } = state;
+    const { radius } = shape;
 
     let scaledRadius = radius * xCOEFF;
 
     let rectangle = makeRectangle( position, scaledRadius * 2, scaledRadius * 2 );
-    let circle = makeCircle( rectangle, position, scaledRadius );
+    let circle = makeCircle( rectangle, position, scaledRadius, state );
 
     let newPegs = [];
     for ( let i = 0; i < circle.length; i++ ) {
@@ -62,21 +43,21 @@ function addCircle( position, state, isPreview = false ) {
     return newPegs;
 }
 
-function pointIsSelected( selectedOptions ) {
-    return selectedOptions.shape === 'point' ||
-        (selectedOptions.shape === 'circle' && selectedOptions.radius === 1) ||
-        (selectedOptions.shape === 'rectangle' 
-            && selectedOptions.width === 1 
-            && selectedOptions.height === 1
+function pointIsSelected( shape ) {
+    return shape.shapeType === SHAPE_TYPES.point ||
+        (shape.shapeType === SHAPE_TYPES.circle && shape.radius === 1) ||
+        (shape.shapeType === SHAPE_TYPES.rectangle 
+            && shape.width === 1 
+            && shape.height === 1
         );
 }
 
-function assessColor( selectedOptions, index = null, isPreview = false ) {
+function assessColor( shape, index = null, isPreview = false ) {
     index = index || Math.floor( Math.random() * RAINBOW_COLORS.length );
-    const isPoint = pointIsSelected( selectedOptions ) ;
-    let color =  parseInt( selectedOptions.rainbowColors ?
+    const isPoint = pointIsSelected( shape ) ;
+    let color =  parseInt( shape.rainbowColors ?
         RAINBOW_COLORS[index % RAINBOW_COLORS.length] :
-        selectedOptions.color.substring( 1 )
+        shape.color.substring( 1 )
     , 16 );
 
     if ( isPoint && isPreview ) {
@@ -87,47 +68,64 @@ function assessColor( selectedOptions, index = null, isPreview = false ) {
     return color;
 }
 
+function onRectangleBorder( position, rectangle ) {
+    return position.x === rectangle[ 0 ].x 
+        || position.x === rectangle[ rectangle.length - 1 ].x
+        || position.y === rectangle[ 0 ].y 
+        || position.y === rectangle[ rectangle.length - 1 ].y;
+}
+
 function addRectangle( position, state, isPreview = false ) {
-    const { pegs, selectedOptions } = state;
-    const { width, height, filled } = selectedOptions;
+    const { shape } = state;
+    const { 
+        width, height, isFilled, isBordered, 
+        fillType, borderType, fillColor, borderColor 
+    } = shape;
 
-    if( pointIsSelected( selectedOptions ) )
-        return addPoint( position, state, isPreview );
 
-    const halfWidth = width / 2 * xCOEFF;
-    const halfHeight = height / 2 * yCOEFF;
-    const count = width * height;
+    if( pointIsSelected( shape ) )
+        return addPoint( position, isPreview, fillColor );
 
+    let rectangle = makeRectangle( position, width, height, fillType, borderType, isFilled, isBordered, fillColor, borderColor );
+
+    let borderPoints = rectangle.filter( position => 
+        onRectangleBorder( position, rectangle )
+    );
+    
     let newPegs = [];
 
-    for ( let x = 0; x < width; x++ ) {
-        for ( let y = 0; y < height; y++ ) {
-            if(!filled && ( x > 0 && x < width - 1 && y > 0 && y < height - 1 ) ) continue;
-            let newPos = { x: position.x + x * xCOEFF - halfWidth, y: position.y + y * yCOEFF - halfHeight };
-            
-            newPos = adjustPosToFixedGrid( newPos );
+    for ( let i = 0; i < rectangle.length; i++ ) { 
+        let newPos = adjustPosToFixedGrid( rectangle[ i ] );
 
-            if ( !posOutOfBounds( newPos ) ) {
-                let pegs = addPoint( newPos, state, isPreview );
-                if( pegs && pegs.length > 0 ) 
-                    newPegs.push( pegs[ 0 ] );
-            }
-        }
+        let onTheBorder = borderPoints.find( point => 
+            point.distanceTo( newPos ) == 0 
+        );
+        let color = onTheBorder ? borderColor : fillColor;
+
+        if ( posOutOfBounds( newPos ) ) 
+             continue; 
+        if ( isBordered && !isFilled && !onTheBorder)
+            continue;
+        if ( isFilled && !isBordered && onTheBorder)
+            continue;
+
+        let pegs = addPoint( newPos, isPreview, color );
+        if( pegs && pegs.length > 0 ) 
+            newPegs.push( pegs[ 0 ] );        
     }
 
     return newPegs;
 }
 
 function addTriangle( position, state, isPreview = false ) {
-    const { pegs, selectedOptions } = state;
-    const { width, height, filled } = selectedOptions;
+    const { shape } = state;
+    const { width, height, filled } = shape;
 
-    if( pointIsSelected( selectedOptions ) )
+    if( pointIsSelected( shape ) )
         return addPoint( position, state, isPreview );
 
     const halfWidth = width / 2 * xCOEFF;
     const halfHeight = height / 2 * yCOEFF;
-    const count = width * height;
 
     let newPegs = [];
 
@@ -164,15 +162,50 @@ function inCircleRadius( midpoint, position, radius ) {
     return position.distanceTo( midpoint ) < radius * xCOEFF;
 }
 
-function makeRectangle( position, height, width ) {
+function inRectangleFill(x, y, width, height, fillType, isBordered = false) {
+    if (isBordered && (x === 0 || x === width - 1 || y === 0 || y === height - 1)) return true;
+            
+    switch (fillType) {
+        case FILL_TYPES.full:
+            return true;
+        case FILL_TYPES.dotted:
+            return Math.floor( x + y ) % 2 === 0;
+        case FILL_TYPES.horizStripes:
+            return y % 2 === 0;
+        case FILL_TYPES.vertStripes:
+            return x % 2 === 0;
+        case FILL_TYPES.diagStripes:
+            return Math.floor( x + y ) % 2 === 0;
+        case FILL_TYPES.x:
+            return Math.floor( x + y ) % 2 === 0;
+        default:
+            return true;
+    }
+}
+
+function inRectBorderFill( x, y, borderType ) {
+    switch (borderType) {
+        case BORDER_TYPES.full:
+            return true;
+        case BORDER_TYPES.dotted:
+            return Math.floor( x - y ) % 2 === 0;
+        default:
+            return true;
+    }
+}
+
+function makeRectangle( position, width, height, fillType, borderType, isFilled, isBordered, fillColor, borderColor ) {
     let halfWidth = width / 2 * xCOEFF;
     let halfHeight = height / 2 * yCOEFF;
     let positions = [];
 
     for ( let x = 0; x < width; x++ ) {
         for ( let y = 0; y < height; y++ ) {
-            //let newPos = { x: position.x + x * xCOEFF - halfWidth, y: position.y + y * yCOEFF - halfHeight };
+            if ( !inRectangleFill( x, y, width, height, fillType, isBordered ) ) continue;
+            if ( isBordered && !inRectBorderFill( x, y, width, height, borderType ) ) continue;
+            
             let newPos = new THREE.Vector3( position.x + x * xCOEFF - halfWidth, position.y + y * yCOEFF - halfHeight, 0 );
+            
             newPos = adjustPosToFixedGrid( newPos );
             positions.push( newPos );
         }
@@ -180,25 +213,34 @@ function makeRectangle( position, height, width ) {
 
     return positions;
 }
-// takes an array of positions,
-// returns a new array of positions
-// in the shape of a circle        
-function makeCircle( rectangle, midpoint, radius ) {
+
+function makeCircle( rectangle, midpoint, radius, state ) {
+    const { shape } = state;
 
     if ( rectangle.length === 1 ) 
         radius = 1;
 
     midpoint = adjustPosToFixedGrid( midpoint );
 
-    return rectangle.filter( position =>
+    let circle = rectangle.filter( position =>
         inCircleRadius( midpoint, position, radius) 
+    )
+
+    let borderPoints = circle.filter( position =>
+        inCircleRadius( midpoint, position, radius )
+        && !inCircleRadius( midpoint, position, radius - 1 )
     );
+
+    if ( shape.filled )
+        return circle;
+    else 
+        return borderPoints;
+    
 }
 
-function addPoint( position, state, isPreview = false, color = null ) {
+function addPoint( position, isPreview = false, color = null ) {
     let peg;
-    const { pegs, selectedOptions } = state;
-    color = color ?? assessColor( selectedOptions, null, isPreview );
+
     if (!posOutOfBounds(position)) {
         peg = addPeg( position, color, isPreview );
     }
@@ -224,19 +266,9 @@ function addPeg( position, color, isPreview = false ) {
     let peg = pegMaterials.clone();
     peg.position.set( position.x, position.y, 0 );
     peg.userData = { 'isPreview' : isPreview };
+
+    console.log(peg)
     return peg;
-}
-
-function getPositionIndex( position ) {
-    return Math.floor( ( position.x + xMAX ) / xCOEFF ) * Math.floor( ( position.y + yMAX ) / yCOEFF );
-}
-
-function positionIsOccupied( pegs, position, isPreview = false ) {
-    return pegs.some( peg => 
-        peg
-        && peg.position
-        && peg.position.distanceTo( position ) < PEG_RADIUS
-    );
 }
 
 function adjustPosToFixedGrid ( position ) {
@@ -246,43 +278,61 @@ function adjustPosToFixedGrid ( position ) {
     return new THREE.Vector3( x, y, 0 );
 }
 
-function makePegsInRectangleVictinity( position, width, height, isPreview = false ) {
-    let vicinity = getRectangleVicinity( position, width, height );
-    let pegs = [];
+const FILL_TYPES = {
+    full: 'Full',
+    dotted: 'Dotted',
+    horizStripes: 'Horizontal Stripes',
+    vertStripes: 'Vertical Stripes',
+    // diagStripes: 'DiagonalStripes', <-- TO DO: Fix
+    // x: "X's"
+}
 
-    for ( let key in vicinity ) {
-        let newPos = adjustPosToFixedGrid( vicinity[ key ] );
-        if ( !posOutOfBounds( newPos ) ) {
-            let peg = addPeg( newPos, isPreview );
-            pegs.push( peg );
+const BORDER_TYPES = {
+    full: 'Full',
+    dotted: 'Dotted',
+}
+
+const SHAPE_TYPES = {
+    point: 'Point',
+    circle: 'Circle',
+    rectangle: 'Rectangle',
+    triangle: 'Triangle'
+}
+
+class Shape {
+    constructor( isFilled, isBordered, fillType, borderType,
+         fillColor, borderColor, shapeType, height, width, rotation ) {
+        this.isFilled = isFilled ?? false;
+        this.isBordered = isBordered ?? true;
+        this.fillType = fillType ?? FILL_TYPES.full;
+        this.borderType = borderType ?? FILL_TYPES.full;
+        // this.fillColors = fillColors ?? ['ffffff'];
+        // this.borderColors = borderColors ?? ['ffffff'];
+        this.fillColor = fillColor ?? 'ffffff';
+        this.borderColor = borderColor ?? 'ffffff';
+        this.shapeType = shapeType ?? 'point';
+        this.height = height ?? 4;
+        this.width = width ?? 4;
+        this.rotation = rotation ?? 0;
+    }
+
+    draw( position, state, isPreview = false, color = null ) {
+        switch ( this.shapeType ) {
+            case SHAPE_TYPES.point:
+                return addPoint( position, isPreview, color ?? this.fillColor );
+            case SHAPE_TYPES.circle:
+                return addCircle( position, state, isPreview );
+            case SHAPE_TYPES.rectangle:
+                return addRectangle( position, state, isPreview );
+            case SHAPE_TYPES.triangle:
+                return addTriangle( position, state, isPreview );
+            default:
+                return addPoint( position, state, this.fillColor );
         }
     }
 }
 
-function getRectangleVicinity( position, width, height ) {
-    const halfWidth = width / 2 * xCOEFF;
-    const halfHeight = height / 2 * yCOEFF;
-
-    // return an object of vec3s instead:
-    return {
-        topLeft: new THREE.Vector3( position.x - halfWidth, position.y + halfHeight, 0 ),
-        topRight: new THREE.Vector3( position.x + halfWidth, position.y + halfHeight, 0 ),
-        bottomLeft: new THREE.Vector3( position.x - halfWidth, position.y - halfHeight, 0 ),
-        bottomRight: new THREE.Vector3( position.x + halfWidth, position.y - halfHeight, 0 )
-    }
-}
-
-function getCircleVicinity( position, radius ) {
-    const count = 10;
-    const angleStep = 2 * Math.PI / count;
-    let points = [];
-
-    for ( let i = 0; i < count; i++ ) {
-        points.push( new THREE.Vector3( Math.cos( angleStep * i ) * radius, Math.sin( angleStep * i ) * radius, 0 ) );
-    }
-
-    return points;
-}
-
-
-export { shapes, adjustPosToFixedGrid, pointIsSelected };
+export { 
+    adjustPosToFixedGrid, pointIsSelected, Shape,
+    FILL_TYPES, BORDER_TYPES, SHAPE_TYPES
+};

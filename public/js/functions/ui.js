@@ -1,40 +1,40 @@
 function initUI( state ) {
     const gui = new GUI({ width: 285 });
-    const selectedOptions = state.selectedOptions;
-    const modeController = gui.add( selectedOptions, 'mode', [ 'drawing', 'selecting', 'moving' ] );
-    const shapeController = gui.add( selectedOptions, 'shape', [ 'point', 'line', 'triangle', 'square', 'pentagon', 'hexagon', 'octagon', 'circle', 'ellipse' ] );
-    const colorController = gui.addColor( selectedOptions, 'color' );
-    const isMultiColorController = gui.add( selectedOptions, 'isMultiColor' );
-    const isRandomColorsController = gui.add( selectedOptions, 'isRandomColors' );
-    const sizeController = gui.add( selectedOptions, 'size', 1, 5 );
-    const angleController = gui.add( selectedOptions, 'angle', 0, 360 );
+    const shape = state.shape;
+    const modeController = gui.add( shape, 'mode', [ 'drawing', 'selecting', 'moving' ] );
+    const shapeController = gui.add( shape, 'shape', [ 'point', 'line', 'triangle', 'square', 'pentagon', 'hexagon', 'octagon', 'circle', 'ellipse' ] );
+    const colorController = gui.addColor( shape, 'color' );
+    const isMultiColorController = gui.add( shape, 'isMultiColor' );
+    const isRandomColorsController = gui.add( shape, 'isRandomColors' );
+    const sizeController = gui.add( shape, 'size', 1, 5 );
+    const angleController = gui.add( shape, 'angle', 0, 360 );
 
     modeController.onChange( ( value ) => {
-        selectedOptions.mode = value;
+        shape.mode = value;
     });
 
     shapeController.onChange( ( value ) => {
-        selectedOptions.shape = value;
+        shape.shape = value;
     });
 
     colorController.onChange( ( value ) => {
-        selectedOptions.color = value;
+        shape.color = value;
     });
 
     isMultiColorController.onChange( ( value ) => {
-        selectedOptions.isMultiColor = value;
+        shape.isMultiColor = value;
     });
 
     isRandomColorsController.onChange( ( value ) => {
-        selectedOptions.isRandomColors = value;
+        shape.isRandomColors = value;
     });
 
     sizeController.onChange( ( value ) => {
-        selectedOptions.size = value;
+        shape.size = value;
     });
 
     angleController.onChange( ( value ) => {
-        selectedOptions.angle = value;
+        shape.angle = value;
     });
 
     return state;

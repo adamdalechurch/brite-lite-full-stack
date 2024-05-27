@@ -1,7 +1,8 @@
 import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 import * as THREE from 'three';
+import { xCOEFF, yCOEFF} from './geometries.js';
 
-import { shapes, adjustPosToFixedGrid } from './shapes.js';
+import { adjustPosToFixedGrid } from './shapes.js';
 
 let isDirty = false;
 
@@ -44,9 +45,7 @@ function addShapeAtMousePosition( event, state, isPreview = false ) {
 
     if(isPreview)
         state.pegs = clearAllPreviews( pegs );
-
     let mousePosOnTarget = getMousePosOnTarget( event, camera, pegboard );
-
     return drawShape( mousePosOnTarget, state, isPreview );
 }
 
@@ -59,30 +58,38 @@ function removeShapeAtMousePosition( event, state ) {
 }
 
 function drawShape( position, state, isPreview = false, adding = true) {
-    const selectedShape = state.selectedOptions.shape;
+    const { shape } = state;
     const pegs = state.pegs;
 
     let nonPreviewPegs = pegs.filter( peg => !peg.userData.isPreview );
-
-    const newPegs = shapes[ selectedShape ].draw( position, state, isPreview )
-    .filter( peg => {
-        let tooClose = nonPreviewPegs.find( p => p.position.distanceTo( peg.position ) == 0 );
-        return !tooClose;
-    });
+    const newPegs = shape.draw( position, state, isPreview )
 
     if(adding){
         return [
             ...pegs,
-            ...newPegs.filter( peg => peg )
+            ...newPegs.filter( peg => {
+
+                if(!peg) return false;
+
+                let tooClose = nonPreviewPegs.find( p =>
+                    p.position.distanceTo( peg.position )  == 0
+                );
+
+                if(tooClose){
+                    peg.userData.removed = true;
+                }
+
+                return !tooClose;
+            })
         ];
     } else {
         return [
             ...pegs.map( peg => {
-                let newPeg = newPegs
-                                
+                let newPeg = newPegs.find( p => p && p.position.distanceTo( peg.position ) == 0 );
+                            
                 if(newPeg){
                     peg.userData.removed = true;
-               }
+                }
                 return peg;
             })
         ]

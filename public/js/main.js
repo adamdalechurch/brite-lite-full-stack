@@ -8,7 +8,8 @@ import {
     addSoftLight, setupBackground, initScene, 
     setupPostProcessing, initControls, 
     addEventListeners, initRenderer, handleIt, handleRemove,
-    animate, shapes, pointIsSelected
+    animate, pointIsSelected, Shape,
+    FILL_TYPES, BORDER_TYPES, SHAPE_TYPES
 } from 'brite-lite/functions';
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
@@ -25,19 +26,10 @@ let state = {
     controls: undefined,
     postProcessing: undefined,
     pegs: [],
-    selectedOptions: {
-        // mode: 'drawing',
-        shape: 'point',
-        radius: 1,
-        width: 1,
-        height: 1,
-        angle: 0,
-        color: '#ff0000',
-        filled: false,
-        // isMultiColor: false,
-        rainbowColors: false
-    }
+    shape: new Shape(),
 };
+
+console.log(state)
 
 function copyToClipboard( text ) {
     const el = document.createElement( 'textarea' );
@@ -74,9 +66,9 @@ function getStateById( id ) {
 function loadState( id ) {
     getStateById( id )
     .then( dbState => {
-
         let newPegs = dbState.pegs.map( peg => {
-            let shape = shapes[ 'point' ];
+            let shape = new Shape();
+            shape.shapeType = SHAPE_TYPES.point;
             let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[ 0 ];
             newPeg.uuid = peg.uuid;
             return newPeg;
@@ -153,7 +145,7 @@ async function init() {
         if( event.ctrlKey && event.key === 'z' ) undo();
     });
 
-    window.addEventListener( 'mousedown', ( event ) => handleMain( event, state ) );
+    window.addEventListener( 'click', ( event ) => handleMain( event, state ) );
     window.addEventListener( 'mousemove', ( event ) => handleMain( event, state, true ) );
 
     let id = getIdFromURL();
@@ -176,6 +168,7 @@ function undo() {
 }
 
 function handleMain( event, state, isPreview = false) {
+    console.log(isPreview)
     if ( event.pointerType === 'pen' ) return;
     if ( event.target.tagName !== 'CANVAS' ) return;
 
@@ -189,7 +182,7 @@ function handleMain( event, state, isPreview = false) {
         handleRemove( event, state ) :
         handleIt( event, state, isPreview );
 
-    if( isPreview && !pointIsSelected( state.selectedOptions ) ) {
+    if( isPreview && !pointIsSelected( state.shape ) ) {
         refireTimeout = setTimeout( () => {
             state = handleMain( event, state, isPreview );
         }, REFIRE_TIMEOUT_MS );
@@ -198,22 +191,18 @@ function handleMain( event, state, isPreview = false) {
 
 function initGUI( state ) {
     const gui = new GUI();
-    const { selectedOptions } = state;
+    const { shape } = state;
 
-    // gui.add( selectedOptions, 'mode', [ 'drawing', 'selecting', 'moving' ] );
-    gui.add( selectedOptions, 'shape', Object.keys( shapes ) );
-    gui.add( selectedOptions, 'radius', 1, 100 ).step( 1 );
-    gui.add( selectedOptions, 'width', 1, 100 ).step( 1 );
-    gui.add( selectedOptions, 'height', 1, 100 ).step( 1 );
-    gui.add( selectedOptions, 'angle', 0, Math.PI * 2 );
-    gui.addColor( selectedOptions, 'color' );
-    // gui.add( selectedOptions, 'isMultiColor' );
-    gui.add( selectedOptions, 'filled' );
-    gui.add( selectedOptions, 'rainbowColors' );
-
-    // add save button:
-    gui.add( { save: saveState }, 'save' );
-
+    gui.add( shape, 'shapeType', SHAPE_TYPES );
+    gui.add( shape, 'isFilled' );
+    gui.add( shape, 'isBordered' );
+    gui.add( shape, 'fillType', Object.values( FILL_TYPES ) );
+    // gui.add( shape, 'borderType', Object.values( BORDER_TYPES ) );
+    gui.add( shape, 'height', 1, 100 ).step( 1 );
+    gui.add( shape, 'width', 1, 100 ).step( 1 );
+    // gui.add( shape, 'rotation', 0, Math.PI * 2 );
+    gui.addColor( shape, 'fillColor' );
+    gui.addColor( shape, 'borderColor' );
     // add keyup event to gui:
     return gui;
 }
