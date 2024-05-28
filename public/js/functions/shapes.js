@@ -75,7 +75,7 @@ function onRectangleBorder( position, rectangle ) {
         || position.y === rectangle[ rectangle.length - 1 ].y;
 }
 
-function addRectangle( position, state, isPreview = false ) {
+function addRectangle( position, state, isPreview = false, color = null ) {
     const { shape } = state;
     const { 
         width, height, isFilled, isBordered, 
@@ -117,7 +117,7 @@ function addRectangle( position, state, isPreview = false ) {
     return newPegs;
 }
 
-function addTriangle( position, state, isPreview = false ) {
+function addTriangle( position, state, isPreview = false, color = null ) {
     const { shape } = state;
     const { width, height, filled } = shape;
 
@@ -310,7 +310,7 @@ class Shape {
         // this.borderColors = borderColors ?? ['ffffff'];
         this.fillColor = fillColor ?? 'ffffff';
         this.borderColor = borderColor ?? 'ffffff';
-        this.shapeType = shapeType ?? 'point';
+        this.shapeType = shapeType ?? SHAPE_TYPES.point;
         this.height = height ?? 4;
         this.width = width ?? 4;
         this.rotation = rotation ?? 0;
@@ -327,7 +327,7 @@ class Shape {
             case SHAPE_TYPES.triangle:
                 return addTriangle( position, state, isPreview );
             default:
-                return addPoint( position, state, this.fillColor );
+                return addPoint( position, isPreview, color ?? this.fillColor );
         }
     }
 }

@@ -59,20 +59,25 @@ function removeShapeAtMousePosition( event, state ) {
 
 function drawShape( position, state, isPreview = false, adding = true) {
     const { shape } = state;
+
     const pegs = state.pegs;
 
     let nonPreviewPegs = pegs.filter( peg => !peg.userData.isPreview );
+
     const newPegs = shape.draw( position, state, isPreview )
 
     if(adding){
         return [
             ...pegs,
-            ...newPegs.filter( peg => {
+            ...newPegs
+            .filter( peg => {
+
+                if (peg.isPreview) return true
 
                 if(!peg) return false;
 
                 let tooClose = nonPreviewPegs.find( p =>
-                    p.position.distanceTo( peg.position )  == 0
+                    p.position.distanceTo( peg.position ) == 0
                 );
 
                 if(tooClose){
@@ -100,7 +105,8 @@ function clearAllPreviews( pegs ) {
 
     let previews = pegs.filter( peg => peg.userData.isPreview );
 
-    for ( let i = 0; i < previews.length; i++ ) {
+    // keep the last preview to avoid flickering
+    for ( let i = 0; i < previews.length - 1; i++ ) {
         previews[ i ].userData.removed = true;
     }
 
