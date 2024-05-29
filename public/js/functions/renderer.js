@@ -44,7 +44,7 @@ function addShapeAtMousePosition( event, state, isPreview = false ) {
     const { camera, scene, pegboard, pegs } = state;
 
     if(isPreview)
-        state.pegs = clearAllPreviews( pegs );
+        state.pegs = clearAllPreviews( state );
     let mousePosOnTarget = getMousePosOnTarget( event, camera, pegboard );
     return drawShape( mousePosOnTarget, state, isPreview );
 }
@@ -52,9 +52,9 @@ function addShapeAtMousePosition( event, state, isPreview = false ) {
 function removeShapeAtMousePosition( event, state ) {
     const { camera, scene, pegboard, pegs } = state;
 
-    state.pegs = clearAllPreviews( pegs );
+    state.pegs = clearAllPreviews( state );
     let mousePosOnTarget = getMousePosOnTarget( event, camera, pegboard );
-    return  drawShape( mousePosOnTarget, state, false, false );
+    return drawShape( mousePosOnTarget, state, false, false );
 }
 
 function drawShape( position, state, isPreview = false, adding = true) {
@@ -64,8 +64,8 @@ function drawShape( position, state, isPreview = false, adding = true) {
 
     let nonPreviewPegs = pegs.filter( peg => !peg.userData.isPreview );
 
-    const newPegs = shape.draw( position, state, isPreview )
-
+    const newPegs = shape.draw( position, state, isPreview, null );
+    console.log(newPegs.length)
     if(adding){
         return [
             ...pegs,
@@ -101,12 +101,14 @@ function drawShape( position, state, isPreview = false, adding = true) {
     }
 }
 
-function clearAllPreviews( pegs ) {
+function clearAllPreviews(  state ) {
+    const { pegs, numNewPegs } = state;
 
+    let countBefore, countAfter;
     let previews = pegs.filter( peg => peg.userData.isPreview );
-
-    // keep the last preview to avoid flickering
-    for ( let i = 0; i < previews.length - 1; i++ ) {
+    
+    // keep tee number of new pegs, plus one for the last preview
+    for ( let i = 0; i < previews.length - ( numNewPegs ? numNewPegs + 1 : 1 ); i++ ) {
         previews[ i ].userData.removed = true;
     }
 
@@ -133,12 +135,22 @@ async function animate( state ) {
 }
 
 function handleIt( event, state, isPreview = false) {
-    const { camera, scene, pegboard, pegs } = state;
+    const { pegs } = state;
     
+    const numPegsBefore = pegs.length;
+
     if ( event.target.tagName !== 'CANVAS' ) return;  
 
     state.pegs = addShapeAtMousePosition( event, state, isPreview );
+    
+    // we only want to consider 
+    // non-preview pegs
+    state.numNewPegs = !isPreview 
+        ? pegs.length - numPegsBefore
+        : 0; 
+    
     isDirty = true;
+
     return state;
 }
 

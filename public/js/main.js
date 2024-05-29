@@ -8,7 +8,7 @@ import {
     addSoftLight, setupBackground, initScene, 
     setupPostProcessing, initControls, 
     addEventListeners, initRenderer, handleIt, handleRemove,
-    animate, pointIsSelected, Shape,
+    animate, Shape,
     FILL_TYPES, BORDER_TYPES, SHAPE_TYPES
 } from 'brite-lite/functions';
 
@@ -25,11 +25,10 @@ let state = {
     pegboard: undefined,
     controls: undefined,
     postProcessing: undefined,
+    numNewPegs: 0,
     pegs: [],
     shape: new Shape(),
 };
-
-console.log(state)
 
 function copyToClipboard( text ) {
     const el = document.createElement( 'textarea' );
@@ -64,12 +63,18 @@ function getStateById( id ) {
 }
 
 function loadState( id ) {
+        state.width = 2;
+    state.height = 2;
+    state.fillType = FILL_TYPES.solid;
+    state.isFilled = true;
+
     getStateById( id )
     .then( dbState => {
         let newPegs = dbState.pegs.map( peg => {
             let shape = new Shape();
-            shape.shapeType = SHAPE_TYPES.point;
-            let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[ 0 ];
+            shape.shapeType = SHAPE_TYPES.circle;
+            console.log(peg)
+            let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
             newPeg.uuid = peg.uuid;
             return newPeg;
         });
@@ -182,7 +187,7 @@ function handleMain( event, state, isPreview = false) {
         handleRemove( event, state ) :
         handleIt( event, state, isPreview );
 
-    if( isPreview && !pointIsSelected( state.shape ) ) {
+    if( isPreview ) {
         refireTimeout = setTimeout( () => {
             state = handleMain( event, state, isPreview );
         }, REFIRE_TIMEOUT_MS );
@@ -198,8 +203,8 @@ function initGUI( state ) {
     gui.add( shape, 'isBordered' );
     gui.add( shape, 'fillType', Object.values( FILL_TYPES ) );
     // gui.add( shape, 'borderType', Object.values( BORDER_TYPES ) );
-    gui.add( shape, 'height', 1, 100 ).step( 1 );
-    gui.add( shape, 'width', 1, 100 ).step( 1 );
+    gui.add( shape, 'width', 1, 50 ).step( 1 );
+    gui.add( shape, 'height', 1, 50 ).step( 1 );
     // gui.add( shape, 'rotation', 0, Math.PI * 2 );
     gui.addColor( shape, 'fillColor' );
     gui.addColor( shape, 'borderColor' );

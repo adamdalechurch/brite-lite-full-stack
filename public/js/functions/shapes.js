@@ -21,51 +21,51 @@ const RAINBOW_COLORS = [
 
 let pegMaterials, lastPreviewColor = 'ff0000';
 
-function addCircle( position, state, isPreview = false ) {
+function addCircle( position, state, isPreview = false, color = null ) {
     const { shape } = state;
-    const { radius } = shape;
+    let { width, height, isFilled, isBordered, 
+        fillType, borderType, fillColor, borderColor 
+    } = shape;
+
+    const radius = width / 2;
 
     let scaledRadius = radius * xCOEFF;
 
-    let rectangle = makeRectangle( position, scaledRadius * 2, scaledRadius * 2 );
-    let circle = makeCircle( rectangle, position, scaledRadius, state );
+    let rectWidth = width > 1 ? width + 1 : width;
+
+    let rectangle = makeRectangle( position, rectWidth, rectWidth, fillType, borderType, isFilled, isBordered, fillColor, borderColor );
+    let circle = makeCircle( rectangle, position, radius, state );
 
     let newPegs = [];
+
+    if (color !=null)
+        fillColor = color;
+
     for ( let i = 0; i < circle.length; i++ ) {
         let newPos = adjustPosToFixedGrid( circle[ i ] );
-        if ( !posOutOfBounds( newPos ) ) {
-            let pegs = addPoint( newPos, state, isPreview );
-            if( pegs && pegs.length > 0 ) 
-                newPegs.push( pegs[ 0 ] );
-        }
+        let onTheBorder = onCircleBorder( newPos, position, width / 2 );
+        color = onTheBorder ? borderColor : fillColor
+    
+        if ( posOutOfBounds( newPos ) ) 
+            continue;
+
+        if ( isBordered && !isFilled && !onTheBorder )
+            continue;
+
+        if ( isFilled && !isBordered && onTheBorder )
+            continue;
+
+        let pegs = addPoint( newPos, isPreview, color );
+        if( pegs && pegs.length > 0 ) 
+            newPegs.push( pegs[ 0 ] );
     }
 
     return newPegs;
 }
 
-function pointIsSelected( shape ) {
-    return shape.shapeType === SHAPE_TYPES.point ||
-        (shape.shapeType === SHAPE_TYPES.circle && shape.radius === 1) ||
-        (shape.shapeType === SHAPE_TYPES.rectangle 
-            && shape.width === 1 
-            && shape.height === 1
-        );
-}
-
-function assessColor( shape, index = null, isPreview = false ) {
-    index = index || Math.floor( Math.random() * RAINBOW_COLORS.length );
-    const isPoint = pointIsSelected( shape ) ;
-    let color =  parseInt( shape.rainbowColors ?
-        RAINBOW_COLORS[index % RAINBOW_COLORS.length] :
-        shape.color.substring( 1 )
-    , 16 );
-
-    if ( isPoint && isPreview ) {
-        lastPreviewColor = color;
-    } else if ( isPoint && !isPreview ) {
-        color = lastPreviewColor;
-    }
-    return color;
+function onCircleBorder( position, midpoint, radius ) {
+    return inCircleRadius( midpoint, position, radius ) 
+    && !inCircleRadius( midpoint, position, radius - 1  );
 }
 
 function onRectangleBorder( position, rectangle ) {
@@ -82,26 +82,17 @@ function addRectangle( position, state, isPreview = false, color = null ) {
         fillType, borderType, fillColor, borderColor 
     } = shape;
 
-
-    if( pointIsSelected( shape ) )
-        return addPoint( position, isPreview, fillColor );
-
     let rectangle = makeRectangle( position, width, height, fillType, borderType, isFilled, isBordered, fillColor, borderColor );
 
-    let borderPoints = rectangle.filter( position => 
-        onRectangleBorder( position, rectangle )
-    );
-    
     let newPegs = [];
 
     for ( let i = 0; i < rectangle.length; i++ ) { 
         let newPos = adjustPosToFixedGrid( rectangle[ i ] );
-
-        let onTheBorder = borderPoints.find( point => 
-            point.distanceTo( newPos ) == 0 
-        );
-        let color = onTheBorder ? borderColor : fillColor;
-
+        const onTheBorder = onRectangleBorder( newPos, rectangle );
+        
+        color = onTheBorder && width > 1 && height > 1 
+            ? borderColor : fillColor;
+        
         if ( posOutOfBounds( newPos ) ) 
              continue; 
         if ( isBordered && !isFilled && !onTheBorder)
@@ -117,12 +108,9 @@ function addRectangle( position, state, isPreview = false, color = null ) {
     return newPegs;
 }
 
-function addTriangle( position, state, isPreview = false, color = null ) {
+function addTriangle( position, state, isPreview = false ) {
     const { shape } = state;
     const { width, height, filled } = shape;
-
-    if( pointIsSelected( shape ) )
-        return addPoint( position, state, isPreview );
 
     const halfWidth = width / 2 * xCOEFF;
     const halfHeight = height / 2 * yCOEFF;
@@ -217,6 +205,8 @@ function makeRectangle( position, width, height, fillType, borderType, isFilled,
 function makeCircle( rectangle, midpoint, radius, state ) {
     const { shape } = state;
 
+    if ( radius < 1 ) return rectangle;
+
     if ( rectangle.length === 1 ) 
         radius = 1;
 
@@ -226,21 +216,12 @@ function makeCircle( rectangle, midpoint, radius, state ) {
         inCircleRadius( midpoint, position, radius) 
     )
 
-    let borderPoints = circle.filter( position =>
-        inCircleRadius( midpoint, position, radius )
-        && !inCircleRadius( midpoint, position, radius - 1 )
-    );
-
-    if ( shape.filled )
-        return circle;
-    else 
-        return borderPoints;
-    
+    return circle;
 }
 
 function addPoint( position, isPreview = false, color = null ) {
     let peg;
-
+    
     if (!posOutOfBounds(position)) {
         peg = addPeg( position, color, isPreview );
     }
@@ -267,7 +248,6 @@ function addPeg( position, color, isPreview = false ) {
     peg.position.set( position.x, position.y, 0 );
     peg.userData = { 'isPreview' : isPreview };
 
-    console.log(peg)
     return peg;
 }
 
@@ -293,7 +273,7 @@ const BORDER_TYPES = {
 }
 
 const SHAPE_TYPES = {
-    point: 'Point',
+    // point: 'Point',
     circle: 'Circle',
     rectangle: 'Rectangle',
     triangle: 'Triangle'
@@ -302,37 +282,35 @@ const SHAPE_TYPES = {
 class Shape {
     constructor( isFilled, isBordered, fillType, borderType,
          fillColor, borderColor, shapeType, height, width, rotation ) {
-        this.isFilled = isFilled ?? false;
-        this.isBordered = isBordered ?? true;
-        this.fillType = fillType ?? FILL_TYPES.full;
-        this.borderType = borderType ?? FILL_TYPES.full;
+        this.isFilled = isFilled || true;
+        this.isBordered = isBordered || true;
+        this.fillType = fillType || FILL_TYPES.full;
+        this.borderType = borderType || FILL_TYPES.full;
         // this.fillColors = fillColors ?? ['ffffff'];
         // this.borderColors = borderColors ?? ['ffffff'];
-        this.fillColor = fillColor ?? 'ffffff';
-        this.borderColor = borderColor ?? 'ffffff';
-        this.shapeType = shapeType ?? SHAPE_TYPES.point;
-        this.height = height ?? 4;
-        this.width = width ?? 4;
-        this.rotation = rotation ?? 0;
+        this.fillColor = fillColor || '#05e2ff';
+        this.borderColor = borderColor || '#ff2ee3';
+        this.shapeType = shapeType || SHAPE_TYPES.circle;
+        this.height = height || 1;
+        this.width = width || 1;
+        this.rotation = rotation || 0;
     }
 
     draw( position, state, isPreview = false, color = null ) {
         switch ( this.shapeType ) {
-            case SHAPE_TYPES.point:
-                return addPoint( position, isPreview, color ?? this.fillColor );
-            case SHAPE_TYPES.circle:
-                return addCircle( position, state, isPreview );
+            // case SHAPE_TYPES.circle:
+            //     return addCircle( position, state, isPreview );
             case SHAPE_TYPES.rectangle:
                 return addRectangle( position, state, isPreview );
             case SHAPE_TYPES.triangle:
                 return addTriangle( position, state, isPreview );
             default:
-                return addPoint( position, isPreview, color ?? this.fillColor );
+                return addCircle( position, state, isPreview, color ) 
         }
     }
 }
 
 export { 
-    adjustPosToFixedGrid, pointIsSelected, Shape,
+    adjustPosToFixedGrid, Shape,
     FILL_TYPES, BORDER_TYPES, SHAPE_TYPES
 };
