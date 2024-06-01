@@ -110,10 +110,12 @@ function addRectangle( position, state, isPreview = false, color = null ) {
 
 function addTriangle( position, state, isPreview = false ) {
     const { shape } = state;
-    const { width, height, filled } = shape;
+    const { width, height, isFilled, isBordered, fillColor, borderColor } = shape;
 
     const halfWidth = width / 2 * xCOEFF;
     const halfHeight = height / 2 * yCOEFF;
+
+    let color;
 
     let newPegs = [];
 
@@ -128,12 +130,17 @@ function addTriangle( position, state, isPreview = false ) {
 
             if ( !posOutOfBounds( newPos )) {
                 
-                if(!filled && (x >= xMin + 1 && x <= xMax - 1 && y != 0) ) continue;
+                if(x >= xMin + 1 && x <= xMax - 1 && y != 0) {
+                    if (!isFilled) continue
+                    color = fillColor;
+                } else {
+                    if (!isBordered) continue
+                    color = borderColor;
+                }
 
                 if( x < xMin || x > xMax ) continue;
 
-
-                let pegs = addPoint( newPos, state, isPreview );
+                let pegs = addPoint( newPos, isPreview, color );
 
                 if( pegs && pegs.length > 0 ) 
                     newPegs.push( pegs[ 0 ] );
