@@ -115,6 +115,8 @@ function addTriangle( position, state, isPreview = false ) {
     const halfWidth = width / 2 * xCOEFF;
     const halfHeight = height / 2 * yCOEFF;
 
+    const af = height / width * 2
+
     let color;
 
     let newPegs = [];
@@ -123,8 +125,8 @@ function addTriangle( position, state, isPreview = false ) {
         let xOutline1Laid = false;
         for ( let x = 0; x < width; x++ ) {
             let newPos = { x: position.x + x * xCOEFF - halfWidth, y: position.y + y * yCOEFF - halfHeight };
-            let xMin = (width / 2) - ((height - y) / 4)
-            let xMax = (width / 2) + ((height - y) / 4)
+            let xMin = (width / 2) - ((height - y) / af);
+            let xMax = (width / 2) + ((height - y) / af);
 
             newPos = adjustPosToFixedGrid( newPos );
 
