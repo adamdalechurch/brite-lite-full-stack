@@ -5,15 +5,19 @@ import { xCOEFF, yCOEFF} from './geometries.js';
 import { adjustPosToFixedGrid } from './shapes.js';
 
 let isDirty = false;
+let resting = true
 
 function drawBoard( pegs, scene ) {
+    resting = true;
     for ( let i = 0; i < pegs.length; i++ ) {
         if ( pegs[ i ] && !pegs[ i ].userData.rendered ) {
+            resting = false;
             scene.add( pegs[ i ] );
             pegs[ i ].userData.rendered = true;
         }
 
         if ( pegs[ i ] && pegs[ i ].userData.removed ) { 
+            resting = false;
             scene.remove( pegs[ i ] );
             pegs.splice( i, 1 );
         }
@@ -65,7 +69,6 @@ function drawShape( position, state, isPreview = false, adding = true) {
     let nonPreviewPegs = pegs.filter( peg => !peg.userData.isPreview );
 
     const newPegs = shape.draw( position, state, isPreview, null );
-    console.log(newPegs.length)
     if(adding){
         return [
             ...pegs,

@@ -108,6 +108,7 @@ function saveState() {
 init();
 
 const stateHistory = [ state ];
+let undoHistory = [];
 
 async function init() {
 
@@ -148,6 +149,7 @@ async function init() {
     // ctrl to hold
     window.addEventListener( 'keydown', ( event ) => {
         if( event.ctrlKey && event.key === 'z' ) undo();
+        if( event.ctrlKey && event.key === 'y' ) redo();
     });
 
     window.addEventListener( 'click', ( event ) => handleMain( event, state ) );
@@ -161,19 +163,45 @@ async function init() {
 function undo() {
     if ( stateHistory.length > 1 ) {
         let prevState = stateHistory.pop();
-        state = { 
-            ...state,
-            pegs: state.pegs.map( peg => {
-                let prevPeg = prevState.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
-                peg.userData.removed = !prevPeg || prevPeg.userData.removed || peg.userData.isPreview;
-                return peg;
-            }),
-        };
+
+        undoHistory.push( { ...state } );
+
+        buildStateFromHistory( prevState );
     }
 }
 
+function redo() {
+    if ( undoHistory.length > 0 ) {
+        let redoState = undoHistory.pop();
+
+        stateHistory.push( { ...state } );
+        
+        state = {
+            ...state,
+            pegs: redoState.pegs.map( peg => {
+                peg.userData.rendered = false;
+                peg.userData.removed = peg.userData.isPreview;
+                return peg;
+            })
+        }
+    }
+}
+
+
+function buildStateFromHistory(history) {
+    if ( history.length === 0 ) return;
+
+    state = {
+        ...state,
+        pegs:  state.pegs.map( peg => {
+            let prevPeg = history.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
+            peg.userData.removed = !prevPeg || prevPeg.userData.removed || peg.userData.isPreview;
+            return peg;
+        })
+    };
+}
+
 function handleMain( event, state, isPreview = false) {
-    console.log(isPreview)
     if ( event.pointerType === 'pen' ) return;
     if ( event.target.tagName !== 'CANVAS' ) return;
 
@@ -181,6 +209,7 @@ function handleMain( event, state, isPreview = false) {
 
     if(!isPreview) {
         stateHistory.push( {...state } );
+        undoHistory = [];
     }
 
     state = event.ctrlKey ? 

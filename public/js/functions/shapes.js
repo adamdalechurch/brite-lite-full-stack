@@ -192,7 +192,7 @@ function inRectBorderFill( x, y, borderType ) {
 }
 
 function makeRectangle( position, width, height, fillType, borderType, isFilled, isBordered, fillColor, borderColor ) {
-    let halfWidth = Math.( width / 2 ) * xCOEFF;
+    let halfWidth = Math.floor( width / 2 ) * xCOEFF;
     let halfHeight = Math.floor( height / 2 ) * yCOEFF;
     let positions = [];
 
