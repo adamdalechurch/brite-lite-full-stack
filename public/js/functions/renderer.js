@@ -5,19 +5,15 @@ import { xCOEFF, yCOEFF} from './geometries.js';
 import { adjustPosToFixedGrid } from './shapes.js';
 
 let isDirty = false;
-let resting = true
 
 function drawBoard( pegs, scene ) {
-    resting = true;
     for ( let i = 0; i < pegs.length; i++ ) {
         if ( pegs[ i ] && !pegs[ i ].userData.rendered ) {
-            resting = false;
             scene.add( pegs[ i ] );
             pegs[ i ].userData.rendered = true;
         }
 
         if ( pegs[ i ] && pegs[ i ].userData.removed ) { 
-            resting = false;
             scene.remove( pegs[ i ] );
             pegs.splice( i, 1 );
         }
@@ -167,4 +163,13 @@ function handleRemove( event, state ) {
     return state;
 }
 
-export { addShapeAtMousePosition, clearAllPreviews, drawShape, getMousePosOnTarget, drawBoard, initRenderer, handleIt, handleRemove, animate };
+function removeStrayPegs( state ) {
+    let scenePegs = state.scene.children.filter( child => child.userData.isPeg );
+    let pegsNotInState = scenePegs.filter( peg => !state.pegs.find( p => p.uuid === peg.uuid ) );
+
+    pegsNotInState.forEach( peg => {
+        state.scene.remove( peg );
+    });
+}
+
+export { addShapeAtMousePosition, clearAllPreviews, drawShape, getMousePosOnTarget, drawBoard, initRenderer, handleIt, handleRemove, animate, removeStrayPegs };

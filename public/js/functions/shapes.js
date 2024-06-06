@@ -252,7 +252,7 @@ function addPeg( position, color, isPreview = false ) {
 
     let peg = pegMaterials.clone();
     peg.position.set( position.x, position.y, 0 );
-    peg.userData = { 'isPreview' : isPreview };
+    peg.userData = { 'isPreview' : isPreview, isPeg: true};
 
     return peg;
 }

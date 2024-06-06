@@ -9,7 +9,7 @@ import {
     setupPostProcessing, initControls, 
     addEventListeners, initRenderer, handleIt, handleRemove,
     animate, Shape,
-    FILL_TYPES, BORDER_TYPES, SHAPE_TYPES
+    FILL_TYPES, BORDER_TYPES, SHAPE_TYPES, removeStrayPegs
 } from 'brite-lite/functions';
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
@@ -148,8 +148,8 @@ async function init() {
 
     // ctrl to hold
     window.addEventListener( 'keydown', ( event ) => {
-        if( event.ctrlKey && event.key === 'z' ) undo();
-        if( event.ctrlKey && event.key === 'y' ) redo();
+        if( event.ctrlKey && event.key.toLowerCase() === 'z' ) undo();
+        if( event.ctrlKey && event.key.toLowerCase() === 'y' ) redo();
     });
 
     window.addEventListener( 'click', ( event ) => handleMain( event, state ) );
@@ -164,9 +164,11 @@ function undo() {
     if ( stateHistory.length > 1 ) {
         let prevState = stateHistory.pop();
 
-        undoHistory.push( { ...state } );
+        undoHistory.push( { ...state, pegs: state.pegs.filter( peg => !peg.userData.removed ) } );
 
         buildStateFromHistory( prevState );
+
+        removeStrayPegs( state );
     }
 }
 
@@ -174,7 +176,7 @@ function redo() {
     if ( undoHistory.length > 0 ) {
         let redoState = undoHistory.pop();
 
-        stateHistory.push( { ...state } );
+        stateHistory.push( { ...state, pegs: state.pegs.filter( peg => !peg.userData.removed ) } );
         
         state = {
             ...state,
@@ -184,6 +186,8 @@ function redo() {
                 return peg;
             })
         }
+
+        removeStrayPegs( state );
     }
 }
 
