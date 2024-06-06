@@ -112,8 +112,8 @@ function addTriangle( position, state, isPreview = false ) {
     const { shape } = state;
     const { width, height, isFilled, isBordered, fillColor, borderColor } = shape;
 
-    const halfWidth = width / 2 * xCOEFF;
-    const halfHeight = height / 2 * yCOEFF;
+    const halfWidth = Math.floor( width / 2 ) * xCOEFF;
+    const halfHeight = Math.floor( height / 2 ) * yCOEFF;
 
     const af = height / width * 2
 
@@ -156,7 +156,7 @@ function addTriangle( position, state, isPreview = false ) {
 }
 
 function inCircleRadius( midpoint, position, radius ) {
-    return position.distanceTo( midpoint ) < radius * xCOEFF;
+    return position.distanceTo( midpoint ) <= radius * xCOEFF
 }
 
 function inRectangleFill(x, y, width, height, fillType, isBordered = false) {
@@ -192,8 +192,8 @@ function inRectBorderFill( x, y, borderType ) {
 }
 
 function makeRectangle( position, width, height, fillType, borderType, isFilled, isBordered, fillColor, borderColor ) {
-    let halfWidth = width / 2 * xCOEFF;
-    let halfHeight = height / 2 * yCOEFF;
+    let halfWidth = Math.( width / 2 ) * xCOEFF;
+    let halfHeight = Math.floor( height / 2 ) * yCOEFF;
     let positions = [];
 
     for ( let x = 0; x < width; x++ ) {
@@ -214,12 +214,9 @@ function makeRectangle( position, width, height, fillType, borderType, isFilled,
 function makeCircle( rectangle, midpoint, radius, state ) {
     const { shape } = state;
 
-    if ( radius < 1 ) return rectangle;
+    if ( radius <= 1 ) return rectangle;
 
-    if ( rectangle.length === 1 ) 
-        radius = 1;
-
-    midpoint = adjustPosToFixedGrid( midpoint );
+    // midpoint = adjustPosToFixedGrid( midpoint );
 
     let circle = rectangle.filter( position =>
         inCircleRadius( midpoint, position, radius) 
