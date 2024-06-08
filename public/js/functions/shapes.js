@@ -63,9 +63,55 @@ function addCircle( position, state, isPreview = false, color = null ) {
     return newPegs;
 }
 
+function addEllipse( position, state, isPreview = false ) {
+    const { shape } = state;
+    let { width, height, isFilled, isBordered,
+        fillType, borderType, fillColor, borderColor
+    } = shape;
+
+    let rectangle = makeRectangle( position, width, height, fillType, borderType, isFilled, isBordered, fillColor, borderColor );
+    let ellipse = makeEllipse( rectangle, width, height, position, state );
+
+    let newPegs = [];
+
+    for ( let i = 0; i < ellipse.length; i++ ) {
+        let newPos = adjustPosToFixedGrid( ellipse[ i ] );
+        let onTheBorder = onEllipseBorder( newPos, position, width / 2, height / 2 );
+        let color = onTheBorder ? borderColor : fillColor;
+        
+        if ( posOutOfBounds( newPos )  || !inEllipse( newPos, position, width / 2, height / 2 ) ) 
+            continue;
+
+        if ( isBordered && !isFilled && !onTheBorder )
+            continue;
+
+        if ( isFilled && !isBordered && onTheBorder )
+            continue;
+
+        let pegs = addPoint( newPos, isPreview, color );
+        if( pegs && pegs.length > 0 )
+            newPegs.push( pegs[ 0 ] );
+    }
+
+    return newPegs;
+}
+
 function onCircleBorder( position, midpoint, radius ) {
     return inCircleRadius( midpoint, position, radius ) 
     && !inCircleRadius( midpoint, position, radius - 1  );
+}
+
+function onEllipseBorder( position, midpoint, width, height ) {
+    return inEllipse( position, midpoint, width, height )
+    && !inEllipse( position, midpoint, width - 1, height - 1 );
+}
+
+function inEllipse( position, midpoint, width, height ) {
+    const x = position.x - midpoint.x;
+    const y = position.y - midpoint.y;
+    width = width * xCOEFF;
+    height = height * yCOEFF;
+    return ( x * x ) / ( width * width ) + ( y * y ) / ( height * height ) <= 1;
 }
 
 function onRectangleBorder( position, rectangle ) {
@@ -225,6 +271,20 @@ function makeCircle( rectangle, midpoint, radius, state ) {
     return circle;
 }
 
+function makeEllipse( rectangle, length, width, midpoint, state ) {
+    const { shape } = state;
+
+    if ( length <= 1 || width <= 1 ) return rectangle;
+
+    let ellipse = rectangle.filter( position => {
+        const x = position.x - midpoint.x;
+        const y = position.y - midpoint.y;
+        return ( x * x ) / ( length * length ) + ( y * y ) / ( width * width ) <= 1;
+    });
+
+    return ellipse;
+}
+
 function addPoint( position, isPreview = false, color = null ) {
     let peg;
     
@@ -281,6 +341,7 @@ const BORDER_TYPES = {
 const SHAPE_TYPES = {
     // point: 'Point',
     circle: 'Circle',
+    ellipse: 'Ellipse',
     rectangle: 'Rectangle',
     triangle: 'Triangle'
 }
@@ -310,6 +371,8 @@ class Shape {
                 return addRectangle( position, state, isPreview );
             case SHAPE_TYPES.triangle:
                 return addTriangle( position, state, isPreview );
+            case SHAPE_TYPES.ellipse:
+                return addEllipse( position, state, isPreview );
             default:
                 return addCircle( position, state, isPreview, color ) 
         }
