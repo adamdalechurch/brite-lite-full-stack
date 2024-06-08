@@ -364,19 +364,58 @@ class Shape {
     }
 
     draw( position, state, isPreview = false, color = null ) {
+        let shape;
         switch ( this.shapeType ) {
             // case SHAPE_TYPES.circle:
             //     return addCircle( position, state, isPreview );
             case SHAPE_TYPES.rectangle:
-                return addRectangle( position, state, isPreview );
+                shape = addRectangle( position, state, isPreview );
+                break;
             case SHAPE_TYPES.triangle:
-                return addTriangle( position, state, isPreview );
+                shape = addTriangle( position, state, isPreview );
+                break;
             case SHAPE_TYPES.ellipse:
-                return addEllipse( position, state, isPreview );
+                shape = addEllipse( position, state, isPreview );
+                break;
             default:
-                return addCircle( position, state, isPreview, color ) 
+                shape = addCircle( position, state, isPreview, color ) 
         }
+        
+        return rotateShape( shape, state, position );
     }
+}
+
+function rotateShape(shape, state, midpoint) {
+    const { shape: { rotation, width, height } } = state;
+
+    const centerX = midpoint ? midpoint.x : shape[0].x;
+    const centerY = midpoint ? midpoint.y : shape[0].y;
+
+    const angle = rotation * Math.PI / 180;
+
+    let rotatedShape = shape.map(peg => {
+        // Create a Vector3 for the peg's current position
+        let position = peg.position.clone();
+
+        // Translate the position to the origin (center the shape)
+        position.x -= centerX;
+        position.y -= centerY;
+
+        // Apply the rotation
+        let xRotated = position.x * Math.cos(angle) - position.y * Math.sin(angle);
+        let yRotated = position.x * Math.sin(angle) + position.y * Math.cos(angle);
+
+        // Translate back from the origin
+        position.x = xRotated + centerX;
+        position.y = yRotated + centerY;
+
+        // Set the new position for the peg
+        peg.position.set(position.x, position.y, position.z);
+
+        return peg;
+    });
+
+    return rotatedShape;
 }
 
 export { 

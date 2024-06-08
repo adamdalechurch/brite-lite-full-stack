@@ -238,7 +238,7 @@ function initGUI( state ) {
     // gui.add( shape, 'borderType', Object.values( BORDER_TYPES ) );
     gui.add( shape, 'width', 1, 50 ).step( 1 );
     gui.add( shape, 'height', 1, 50 ).step( 1 );
-    // gui.add( shape, 'rotation', 0, Math.PI * 2 );
+    gui.add( shape, 'rotation', 0, 359 );
     gui.addColor( shape, 'fillColor' );
     gui.addColor( shape, 'borderColor' );
     // add keyup event to gui:
