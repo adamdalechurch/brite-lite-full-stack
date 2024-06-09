@@ -409,6 +409,8 @@ function rotateShape(shape, state, midpoint) {
         position.x = xRotated + centerX;
         position.y = yRotated + centerY;
 
+        position = adjustPosToFixedGrid(position);
+
         // Set the new position for the peg
         peg.position.set(position.x, position.y, position.z);
 
