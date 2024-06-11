@@ -348,7 +348,7 @@ const SHAPE_TYPES = {
 
 class Shape {
     constructor( isFilled, isBordered, fillType, borderType,
-         fillColor, borderColor, shapeType, height, width, rotation ) {
+         fillColor, borderColor, shapeType, height, width, rotation, deleting = false, rainbowColors = false ){
         this.isFilled = isFilled || true;
         this.isBordered = isBordered || true;
         this.fillType = fillType || FILL_TYPES.full;
@@ -361,6 +361,8 @@ class Shape {
         this.height = height || 1;
         this.width = width || 1;
         this.rotation = rotation || 0;
+        this.deleting = deleting || false;
+        this.rainbowColors = deleting || false;
     }
 
     draw( position, state, isPreview = false, color = null ) {

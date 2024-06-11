@@ -28,6 +28,7 @@ let state = {
     numNewPegs: 0,
     pegs: [],
     shape: new Shape(),
+    deleting: false
 };
 
 function copyToClipboard( text ) {
@@ -216,7 +217,7 @@ function handleMain( event, state, isPreview = false) {
         undoHistory = [];
     }
 
-    state = event.ctrlKey ? 
+    state = state.shape.deleting ? 
         handleRemove( event, state ) :
         handleIt( event, state, isPreview );
 
@@ -229,7 +230,7 @@ function handleMain( event, state, isPreview = false) {
 
 function initGUI( state ) {
     const gui = new GUI();
-    const { shape } = state;
+    const { shape, deleting } = state;
 
     gui.add( shape, 'shapeType', SHAPE_TYPES );
     gui.add( shape, 'isFilled' );
@@ -238,9 +239,13 @@ function initGUI( state ) {
     // gui.add( shape, 'borderType', Object.values( BORDER_TYPES ) );
     gui.add( shape, 'width', 1, 50 ).step( 1 );
     gui.add( shape, 'height', 1, 50 ).step( 1 );
+
     gui.add( shape, 'rotation', 0, 359 );
     gui.addColor( shape, 'fillColor' );
     gui.addColor( shape, 'borderColor' );
+
+    gui.add( shape, 'deleting' );
+
     // add keyup event to gui:
     return gui;
 }
