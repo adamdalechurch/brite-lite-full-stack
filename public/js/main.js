@@ -164,7 +164,6 @@ async function init() {
 function undo() {
     if ( stateHistory.length > 1 ) {
         let prevState = stateHistory.pop();
-
         undoHistory.push( { ...state, pegs: state.pegs.filter( peg => !peg.userData.removed ) } );
 
         buildStateFromHistory( prevState );
@@ -176,7 +175,7 @@ function undo() {
 function redo() {
     if ( undoHistory.length > 0 ) {
         let redoState = undoHistory.pop();
-
+        
         stateHistory.push( { ...state, pegs: state.pegs.filter( peg => !peg.userData.removed ) } );
         
         state = {
@@ -195,7 +194,8 @@ function redo() {
 
 function buildStateFromHistory(history) {
     if ( history.length === 0 ) return;
-
+        // compare number of non removed pegs
+        // in state vs op
     state = {
         ...state,
         pegs:  state.pegs.map( peg => {

@@ -154,12 +154,15 @@ function handleIt( event, state, isPreview = false) {
 }
 
 function handleRemove( event, state ) {
-    state.pegs = removeShapeAtMousePosition( event, state );
+    let isClick = event.type == 'click';
+
+    if (isClick) state.pegs = removeShapeAtMousePosition( event, state );
 
     // add preview of the shape to be removed:
     state.pegs = addShapeAtMousePosition( event, state, true );
 
     isDirty = true;
+
     return state;
 }
 
