@@ -164,7 +164,7 @@ async function init() {
 function undo() {
     if ( stateHistory.length > 1 ) {
         let prevState = stateHistory.pop();
-        undoHistory.push( { ...state, pegs: state.pegs.filter( peg => !peg.userData.removed ) } );
+        undoHistory.push( { ...state, pegs: state.pegs } );
 
         buildStateFromHistory( prevState );
 
@@ -176,7 +176,7 @@ function redo() {
     if ( undoHistory.length > 0 ) {
         let redoState = undoHistory.pop();
         
-        stateHistory.push( { ...state, pegs: state.pegs.filter( peg => !peg.userData.removed ) } );
+        stateHistory.push( { ...state, pegs: state.pegs } );
         
         state = {
             ...state,
@@ -192,29 +192,46 @@ function redo() {
 }
 
 
-function buildStateFromHistory(history) {
-    if ( history.length === 0 ) return;
+function buildStateFromHistory(redoState) {
+    if ( redoState.length === 0 ) return;
         // compare number of non removed pegs
         // in state vs op
-    state = {
+
+    let unRemovedStatePegs = state.pegs.filter( m => !m.userData.isPreview).length
+    let unRemovedRedoStatePegs = redoState.pegs.filter( m => !m.userData.isPreview).length
+
+    if(unRemovedStatePegs <= unRemovedRedoStatePegs) {
+        state = {
+            ...state,
+            pegs: redoState.pegs.map( peg => {
+                peg.userData.rendered = false;
+                peg.userData.removed = peg.userData.isPreview;
+                return peg;
+            })
+        }
+    } else {
+   state = {
         ...state,
         pegs:  state.pegs.map( peg => {
-            let prevPeg = history.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
+            let prevPeg = redoState.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
             peg.userData.removed = !prevPeg || prevPeg.userData.removed || peg.userData.isPreview;
             return peg;
         })
     };
+    }
 }
 
 function handleMain( event, state, isPreview = false) {
+    let isClick = event.type == 'click';
+    
     if ( event.pointerType === 'pen' ) return;
     if ( event.target.tagName !== 'CANVAS' ) return;
 
     clearTimeout( refireTimeout );
 
-    if(!isPreview) {
-        stateHistory.push( {...state } );
-        undoHistory = [];
+    if(isClick) {
+        stateHistory.push( {...state} );
+        undoHistory = []; 
     }
 
     state = state.shape.deleting ? 
