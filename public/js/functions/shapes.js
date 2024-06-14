@@ -55,7 +55,7 @@ function addCircle( position, state, isPreview = false, color = null ) {
         if ( isFilled && !isBordered && onTheBorder )
             continue;
 
-        let pegs = addPoint( newPos, isPreview, color );
+        let pegs = addPoint( newPos, state, isPreview, color );
         if( pegs && pegs.length > 0 ) 
             newPegs.push( pegs[ 0 ] );
     }
@@ -88,7 +88,7 @@ function addEllipse( position, state, isPreview = false ) {
         if ( isFilled && !isBordered && onTheBorder )
             continue;
 
-        let pegs = addPoint( newPos, isPreview, color );
+        let pegs = addPoint( newPos, state, isPreview, color );
         if( pegs && pegs.length > 0 )
             newPegs.push( pegs[ 0 ] );
     }
@@ -146,7 +146,7 @@ function addRectangle( position, state, isPreview = false, color = null ) {
         if ( isFilled && !isBordered && onTheBorder)
             continue;
 
-        let pegs = addPoint( newPos, isPreview, color );
+        let pegs = addPoint( newPos, state, isPreview, color );
         if( pegs && pegs.length > 0 ) 
             newPegs.push( pegs[ 0 ] );        
     }
@@ -188,7 +188,7 @@ function addTriangle( position, state, isPreview = false ) {
 
                 if( x < xMin || x > xMax ) continue;
 
-                let pegs = addPoint( newPos, isPreview, color );
+                let pegs = addPoint( newPos, state, isPreview, color );
 
                 if( pegs && pegs.length > 0 ) 
                     newPegs.push( pegs[ 0 ] );
@@ -284,10 +284,39 @@ function makeEllipse( rectangle, length, width, midpoint, state ) {
 
     return ellipse;
 }
+function pointIsSelected( shape ) {
+    return shape.width === 1 
+    && shape.height === 1
+}
 
-function addPoint( position, isPreview = false, color = null ) {
+function assesColor( color, state, isPreview = false ){
+    let max = RAINBOW_COLORS.length - 1;
+    const { shape } = state;
+    let index = Math.floor( Math.random() * RAINBOW_COLORS.length);
+        
+    const isPoint = pointIsSelected( shape );
+    console.log(isPoint);
+
+    let newColor =  parseInt( shape.rainbowColors ?
+        RAINBOW_COLORS[index % RAINBOW_COLORS.length] :
+        color.substring( 1 )
+    , 16 );
+
+    if ( isPoint && isPreview ) {
+        lastPreviewColor = newColor;
+    } else if ( isPoint && !isPreview ) {
+        newColor = lastPreviewColor;
+    }
+
+    if( !isPreview || !isPoint )
+        return newColor;
+}
+
+function addPoint( position, state, isPreview = false, color = null ) {
     let peg;
     
+    color = assesColor( color, state, isPreview );
+
     if (!posOutOfBounds(position)) {
         peg = addPeg( position, color, isPreview );
     }
