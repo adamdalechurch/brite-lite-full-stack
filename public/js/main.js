@@ -262,6 +262,7 @@ function initGUI( state ) {
     gui.addColor( shape, 'borderColor' );
 
     gui.add( shape, 'deleting' );
+    gui.add( { save: saveState }, 'save' );
 
     // add keyup event to gui:
     return gui;
