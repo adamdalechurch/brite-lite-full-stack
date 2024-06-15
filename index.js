@@ -47,12 +47,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/art/:id', (req, res) => {
+app.get('/public/art/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Route to save state
-app.post('/state', async (req, res) => {
+app.post('/public/state', async (req, res) => {
     const state = req.body;
 
     // Validate state here (e.g., schema validation)
@@ -68,7 +68,7 @@ app.post('/state', async (req, res) => {
 });
 
 // get by id:
-app.get('/state/:id', async (req, res) => {
+app.get('/public/state/:id', async (req, res) => {
     try {
         const state = await State.findById(req.params.id).lean();
         res.status(200).json(state);
