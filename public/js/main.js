@@ -64,8 +64,8 @@ function getStateById( id ) {
 }
 
 function loadState( id ) {
-        state.width = 2;
-    state.height = 2;
+    state.width = 1;
+    state.height = 1;
     state.fillType = FILL_TYPES.solid;
     state.isFilled = true;
 
@@ -74,7 +74,6 @@ function loadState( id ) {
         let newPegs = dbState.pegs.map( peg => {
             let shape = new Shape();
             shape.shapeType = SHAPE_TYPES.circle;
-            console.log(peg)
             let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
             newPeg.uuid = peg.uuid;
             return newPeg;
@@ -262,7 +261,7 @@ function initGUI( state ) {
     gui.addColor( shape, 'borderColor' );
 
     gui.add( shape, 'deleting' );
-    gui.add( shape, 'rainbowColors' );
+    // gui.add( shape, 'rainbowColors' );
     gui.add( { save: saveState }, 'save' );
 
     // add keyup event to gui:

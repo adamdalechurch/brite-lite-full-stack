@@ -38,8 +38,10 @@ function addCircle( position, state, isPreview = false, color = null ) {
 
     let newPegs = [];
 
-    if (color !=null)
+    if (color != null){
+        borderColor = color;
         fillColor = color;
+    }
 
     for ( let i = 0; i < circle.length; i++ ) {
         let newPos = adjustPosToFixedGrid( circle[ i ] );
@@ -290,6 +292,8 @@ function pointIsSelected( shape ) {
 }
 
 function assesColor( color, state, isPreview = false ){
+    return color;
+    
     let max = RAINBOW_COLORS.length - 1;
     const { shape } = state;
     let index = Math.floor( Math.random() * RAINBOW_COLORS.length);

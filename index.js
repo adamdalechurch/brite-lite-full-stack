@@ -23,17 +23,17 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Middleware
 // app.use(helmet()); // Adds security headers
-app.use(bodyParser.json()); // Parses JSON bodies
+app.use(bodyParser({limit: '50mb'}));
 app.use(express.static(path.join(__dirname, 'public'))); // Serves static files
 
 // Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Too many requests, please try again later.'
-});
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     max: 100, // Limit each IP to 100 requests per windowMs
+//     message: 'Too many requests, please try again later.'
+// });
 
-app.use(limiter);
+// app.use(limiter);
 
 // Serve the main HTML file
 // app.get('/', (req, res) => {
