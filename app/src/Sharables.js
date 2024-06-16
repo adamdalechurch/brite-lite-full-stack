@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
 import {
   FacebookShareButton,
   FacebookIcon,
@@ -42,16 +41,28 @@ import {
 } from 'react-share';
 
 function Sharables() {
-  const [id, setId] = useState(0);
+  const [shareUrl, setShareUrl] = useState(null);
 
-  // useEffect to get id from window:
+  // close modal via the dom
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+  }
+
   useEffect(() => {
-    if (window.id) {
-      setId(window.id);
-    }
+    // fetch the art id from the session:
+    fetch('/api/session')
+      .then((res) => res.json())
+      .then((session) => {
+        if (session.artId) {
+          setShareUrl(`${window.location.origin}/art/${session.artId}`);
+        }
+      });
   }, []);
 
-  const shareUrl = `https://example.com/${id}`; // replace with your actual URL
+
+  if (!shareUrl) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="App">
@@ -114,6 +125,15 @@ function Sharables() {
           <MailruShareButton url={shareUrl}>
             <MailruIcon size={32} round />
           </MailruShareButton>
+          {/* close modal: */}
+          {/* float close icon to thne right */}
+          {/* <button onClick={closeModal} style={{ float: 'right' }}>
+            Close
+          </button> */}
+          {/* make this more of a link */}
+          <a href="#" onClick={closeModal} style={{ float: 'right', color: 'black', fontSize: '24px' }}> 
+            &times;
+          </a>
         </div>
       </header>
     </div>

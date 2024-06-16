@@ -9,27 +9,20 @@ import {
     setupPostProcessing, initControls, 
     addEventListeners, initRenderer, handleIt, handleRemove,
     animate, Shape,
-    FILL_TYPES, BORDER_TYPES, SHAPE_TYPES, removeStrayPegs
+    FILL_TYPES, SHAPE_TYPES, removeStrayPegs
 } from 'brite-lite/functions';
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
-let refireTimeout;
+let refireTimeout, gui, lastSaveId = '',
 
-const REFIRE_TIMEOUT_MS = 100;
-
-let state = {
-    camera: undefined,
-    scene: undefined,   
-    renderer: undefined,
-    pegboard: undefined,
-    controls: undefined,
-    postProcessing: undefined,
+state = {
     numNewPegs: 0,
     pegs: [],
     shape: new Shape(),
-    deleting: false
 };
+
+const REFIRE_TIMEOUT_MS = 100, API_PATH = '/api';
 
 function copyToClipboard( text ) {
     const el = document.createElement( 'textarea' );
@@ -38,7 +31,6 @@ function copyToClipboard( text ) {
     el.select();
     document.execCommand( 'copy' );
     document.body.removeChild( el );
-    alert( 'URL copied to clipboard' );
 }
 
 function makeURL( id ) {
@@ -59,7 +51,7 @@ function getIdFromURL() {
 }
 
 function getStateById( id ) {
-    return fetch( `/state/${id}` )
+    return fetch( `${API_PATH}/state/${id}` )
         .then( res => res.json() );
 }
 
@@ -84,8 +76,8 @@ function loadState( id ) {
     });
 }
 
-function saveState() {
-    return fetch( '/state', {
+function saveState(asShare = true) {
+    return fetch( API_PATH + '/state', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -100,7 +92,14 @@ function saveState() {
     })
     .then( res => res.json() )
     .then( res => {
-        copyToClipboard( makeURL( res.id ) );
+        console.log(res)
+        let url = makeURL( res.id );
+        copyToClipboard( url );
+        if( asShare ) {
+            minimizeGui();
+            refreshReactApp();
+            openModal();
+        }
     });
 }   
 
@@ -144,7 +143,7 @@ async function init() {
 
     addEventListeners( state );
 
-    initGUI( state );
+    gui = initGUI( state );
 
     // ctrl to hold
     window.addEventListener( 'keydown', ( event ) => {
@@ -189,7 +188,6 @@ function redo() {
         removeStrayPegs( state );
     }
 }
-
 
 function buildStateFromHistory(redoState) {
     if ( redoState.length === 0 ) return;
@@ -262,9 +260,54 @@ function initGUI() {
 
     gui.add( shape, 'deleting' );
     // gui.add( shape, 'rainbowColors' );
-    gui.add( { save: saveState }, 'save' );
-
+    // gui.add( { save: saveState }, 'Share' );
+    
     // add keyup event to gui:
     return gui;
 }
 
+function minimizeGui() {
+    // should be a built in method
+    gui.close();
+}
+
+function refreshReactApp() {
+    // Ensure the previous script is removed to avoid duplicate loading
+    const existingScript = document.querySelector("#reactAppScript");
+    if (existingScript) {
+        existingScript.remove();
+    }
+
+    // Dynamically determine the main script file from the build output
+    fetch('/asset-manifest.json')
+        .then(response => response.json())
+        .then(manifest => {
+            const mainScript = manifest.files['main.js'];
+            if (mainScript) {
+                // Add the main react app script
+                const script = document.createElement("script");
+                script.id = "reactAppScript";
+                script.src = mainScript;
+                script.type = "module";
+                document.getElementById("root").appendChild(script);
+            } else {
+                console.error('Main script not found in asset manifest.');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading asset manifest:', error);
+        });
+}
+
+export function openModal(){
+    document.getElementById("modal").style.display = "block";
+}
+
+export function closeModal(){
+    document.getElementById("modal").style.display = "none";
+}
+
+// use the lastSaveId
+export function openShare(self){ // self == this
+   saveState(true);
+}
