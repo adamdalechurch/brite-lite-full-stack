@@ -244,7 +244,7 @@ function handleMain( event, state, isPreview = false) {
     }
 }
 
-function initGUI( state ) {
+function initGUI() {
     const gui = new GUI();
     const { shape, deleting } = state;
 

@@ -42,29 +42,13 @@ app.use(express.static(path.join(__dirname, 'public'))); // Serves static files
 //     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 // });
 
-//pass in an optional id
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 app.get('/public/art/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Route to save state
 app.post('/public/state', async (req, res) => {
-    const state = req.body;
-
-    // Validate state here (e.g., schema validation)
-    try {
-        const newState = new State();
-        newState.pegs = state;
-        await newState.save();
-        res.status(200).json({ id: newState._id });
-    } catch (error) {
-        console.error('Error saving state:', error);
-        res.status(500).json({ message: 'Failed to save state' });
-    }
+   ///
 });
 
 // get by id:
@@ -76,6 +60,11 @@ app.get('/public/state/:id', async (req, res) => {
         console.error('Error getting state:', error);
         res.status(500).json({ message: 'Failed to get state' });
     }
+});
+
+// Handles any requests that don't match the ones above
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start the server
