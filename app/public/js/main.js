@@ -260,7 +260,7 @@ function initGUI() {
 
     gui.add( shape, 'deleting' );
     // gui.add( shape, 'rainbowColors' );
-    gui.add( { share: openShare }, 'share' );
+    // gui.add( { save: saveState }, 'Share' );
     
     // add keyup event to gui:
     return gui;
@@ -308,6 +308,6 @@ export function closeModal(){
 }
 
 // use the lastSaveId
-export function openShare(){ // self == this
+export function openShare(self){ // self == this
    saveState(true);
 }

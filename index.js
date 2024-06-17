@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-// const rateLimit = require('express-rate-limit');
+const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const session = require('express-session');
@@ -35,13 +35,13 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'app/build'))); // Serves static files
 
 // Rate limiting
-// const limiter = rateLimit({
-//     windowMs: 15 * 60 * 1000, // 15 minutes
-//     max: 100, // Limit each IP to 100 requests per windowMs
-//     message: 'Too many requests, please try again later.'
-// });
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests, please try again later.'
+});
 
-// app.use(limiter);
+app.use(limiter);
 
 // API Routes
 app.post('/api/state', async (req, res) => {
@@ -75,10 +75,6 @@ app.get('/api/session', (req, res) => {
 });
 
 // Serve the main HTML file for the React app
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'app/build', 'index.html'));
-});
-
 app.get('/art/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'app/build', 'index.html'));
 });
@@ -88,7 +84,7 @@ const allowedExtensions = [
     '.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.json', '.txt', '.ico'
 ];
 
-// Catch-all route to serve static files
+// Catch-all route to serve React's index.html for other routes
 app.get('*', (req, res) => {
     const requestedPath = path.join(__dirname, 'app/assets', req.path);
     const extname = path.extname(requestedPath).toLowerCase();
@@ -96,16 +92,16 @@ app.get('*', (req, res) => {
     if (allowedExtensions.includes(extname)) {
         fs.access(requestedPath, fs.constants.F_OK, (err) => {
             if (err) {
-                // If the file doesn't exist, send 404
-                res.status(404).send('File not found');
+                // If the file doesn't exist, serve 'index.html'
+                res.sendFile(path.join(__dirname, 'app/build', 'index.html'));
             } else {
                 // If the file exists, serve the file
                 res.sendFile(requestedPath);
             }
         });
     } else {
-        // If the extension is not allowed, send 404
-        res.status(404).send('File not found');
+        // If the extension is not allowed, serve 'index.html'
+        res.sendFile(path.join(__dirname, 'app/build', 'index.html'));
     }
 });
 
