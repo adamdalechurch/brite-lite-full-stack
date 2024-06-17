@@ -59,7 +59,7 @@ function getIdFromURL() {
 }
 
 function getStateById( id ) {
-    return fetch( `api/state/${id}` )
+    return fetch( `/api/state/${id}` )
         .then( res => res.json() );
 }
 
@@ -85,7 +85,7 @@ function loadState( id ) {
 }
 
 function saveState() {
-    return fetch( 'api/state', {
+    return fetch( '/api/state', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
