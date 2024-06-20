@@ -8,7 +8,26 @@
 <link type="text/css" rel="stylesheet" href="/assets/styles/main.css">
 <!-- TO DO: REMOVE CACHING FOR PROD -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<!-- stuff for social media -->:
+<meta property="og:title" content="Brite Lite">
+<meta property="og:description" content="A 3D visualization of the Brite Lite project">
+<meta property="og:image" content="https://britepegs.com/bp_preview.jpg">
+<meta property="og:url" content="https://britepegs.com">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Brite Lite">
+<meta name="twitter:description" content="A 3D visualization of the Brite Lite project">
+<meta name="twitter:image" content="https://britepegs.com/bp_preview.jpg">
+<meta name="twitter:site" content="https://britepegs.com">
+<meta name="twitter:creator" content="@CodingThingsIRL">
+<meta name="twitter:domain" content="https://britepegs.com">
 
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-P8SV3H9H');</script>
+  <!-- End Google Tag Manager -->
 </head>
 <body>
 <script type="importmap">
@@ -21,7 +40,7 @@
 	}
 }
 </script>
-<!-- button opens a modal which is the root of the react app: -->
+<!-- button opens a modal wh`ich is the root of the react app: -->
 <button id="modal-button">
 
   <img src="/share.svg" alt="share" style="width: 20px; height: 20px;" />
@@ -36,7 +55,6 @@
 </div>
 <script type="module" src="/js/main.js"></script>
 <script type="module">
-  alert('sharing/saving is disabled, check back soon.')
   import { openShare, closeModal } from '/js/main.js';
   const modalButton = document.getElementById('modal-button');
   const close = document.getElementById('close');
