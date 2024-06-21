@@ -8,6 +8,7 @@ const session = require('express-session');
 require('dotenv').config();
 
 const State = require('./models/state');
+const Preview = require('./models/preview');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,8 +31,19 @@ mongoose.connect(process.env.MONGODB_URI, {
     console.error('Failed to connect to MongoDB', err);
 });
 
+const injectMetaTags = (req, res, next) => {
+    let url = 'https://britepegs.com/api/preview/' + req.params.id;
+    const metaTags = `
+     <meta property="og:image" content="${url}">
+     <meta property="twitter:image:">
+    `
+
+    req.metaTags = metaTags;
+    next();
+};
+
 // Middleware
-app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.json({ limit: '100mb' }));
 app.use(express.static(path.join(__dirname, 'app/build'))); // Serves static files
 
 // Rate limiting
@@ -45,14 +57,21 @@ app.use(express.static(path.join(__dirname, 'app/build'))); // Serves static fil
 
 // API Routes
 app.post('/api/state', async (req, res) => {
-    const state = req.body;
+    const pegs = req.body.pegs;
+    const base64Image = req.body.base64Image; 
     try {
-        const newState = new State();
-        newState.pegs = state;
-        await newState.save();
+        const state = new State();
+        state.pegs = pegs;
+        await state.save();
+
+        const preview = new Preview();
+        preview.base64Image = base64Image;
+        preview.stateId = state._id;
+        await preview.save();
         // Save the art ID in the session
-        req.session.artId = newState._id;
-        res.status(200).json({ id: newState._id });
+        req.session.artId = state._id;
+        res.status(200).json({ id: state._id });
+
     } catch (error) {
         console.error('Error saving state:', error);
         res.status(500).json({ message: 'Failed to save state' });
@@ -74,13 +93,49 @@ app.get('/api/session', (req, res) => {
     res.json({ artId: req.session.artId });
 });
 
+app.get('/api/preview/:id', async (req, res) => {
+    try {
+        const preview = await Preview.findOne({ stateId: req.params.id }).lean();
+        
+        if (!preview) {
+            return res.status(404).json({ message: 'Preview not found' });
+        }
+
+        const base64Data = preview.base64Image.replace(/^data:image\/png;base64,/, "");
+        const file = Buffer.from(base64Data, 'base64');
+
+        res.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Length': file.length,
+            // should be used in html img tag:
+            "Cache-Control": "public, max-age=31536000",
+            "Expires": new Date(Date.now() + 31536000000).toUTCString()
+            // 'Content-Disposition': `attachment; filename="britepegs-${req.params.id}.png"`
+        });
+        res.end(file);
+
+    } catch (error) {
+        console.error('Error getting preview:', error);
+        res.status(500).json({ message: 'Failed to get preview' });
+    }
+});
+
 // Serve the main HTML file for the React app
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'app/build', 'index.html'));
 });
 
-app.get('/art/:id', (req, res) => {
-    res.sendFile(path.join(__dirname, 'app/build', 'index.html'));
+app.get('/art/:id', injectMetaTags, (req, res) => {
+    const htmlFile = path.join(__dirname, 'app/build', 'index.html');
+    fs.readFile(htmlFile, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Error reading HTML file');
+        }
+
+        const updatedHtml = data.replace('</head>', `${req.metaTags}</head>`);
+
+        res.send(updatedHtml);
+    });
 });
 
 // Allowed file extensions

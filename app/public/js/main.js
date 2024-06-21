@@ -72,7 +72,6 @@ function loadState( id ) {
         });
 
         state = { ...state, pegs: newPegs };
-        
     });
 }
 
@@ -82,13 +81,16 @@ function saveState(asShare = true) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify( [
+        body: JSON.stringify({ pegs: [
             ...state.pegs.map( peg => ({
                 uuid: peg.uuid,
                 position: peg.position,
                 color: peg.material.color.getHexString()
             }))
-        ] )
+        ],
+ 
+        base64Image: canvasToBase64Img( state.renderer.domElement ) 
+        })
     })
     .then( res => res.json() )
     .then( res => {
@@ -310,4 +312,9 @@ export function closeModal(){
 // use the lastSaveId
 export function openShare(){ // self == this
    saveState(true);
+}
+
+function canvasToBase64Img(canvas) {
+    let img = canvas.toDataURL("image/png"); // Specify PNG format
+    return img.replace(/^data:image\/png;base64,/, ""); // Remove the data URL prefix
 }
