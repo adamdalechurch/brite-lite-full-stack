@@ -54,7 +54,10 @@ function Sharables() {
       .then((res) => res.json())
       .then((session) => {
         if (session.artId) {
-          setShareUrl(`${window.location.origin}/art/${session.artId}`);
+          // add 2 line breaks after BritePegs.com
+          setShareUrl(
+            `Check out what I made on BritePegs.com: ${window.location.origin}/art/${session.artId}`
+          );
         }
       });
   }, []);
