@@ -35,7 +35,7 @@ const injectMetaTags = (req, res, next) => {
     let url = 'https://britepegs.com/api/preview/' + req.params.id;
     const metaTags = `
      <meta property="og:image" content="${url}">
-     <meta property="twitter:image:">
+     <meta property="twitter:image" content="${url}">
     `
 
     req.metaTags = metaTags;
