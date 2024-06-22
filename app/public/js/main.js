@@ -81,20 +81,20 @@ function saveState(asShare = true) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ pegs: [
-            ...state.pegs.map( peg => ({
-                uuid: peg.uuid,
-                position: peg.position,
-                color: peg.material.color.getHexString()
-            }))
-        ],
- 
-        base64Image: canvasToBase64Img( state.renderer.domElement ) 
+        body: JSON.stringify({ 
+            pegs: [
+                ...state.pegs.map( peg => ({
+                    uuid: peg.uuid,
+                    position: peg.position,
+                    color: peg.material.color.getHexString()
+                }))
+            ],
+    
+            base64Image: canvasToBase64Img( state.renderer.domElement ) 
         })
     })
     .then( res => res.json() )
     .then( res => {
-        console.log(res)
         let url = makeURL( res.id );
         copyToClipboard( url );
         if( asShare ) {

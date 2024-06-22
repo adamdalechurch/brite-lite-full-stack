@@ -3,7 +3,7 @@ import {
   FacebookShareButton,
   FacebookIcon,
   TwitterShareButton,
-  TwitterIcon,
+  XIcon,
   LinkedinShareButton,
   LinkedinIcon,
   WhatsappShareButton,
@@ -75,7 +75,7 @@ function Sharables() {
             <FacebookIcon size={32} round />
           </FacebookShareButton>
           <TwitterShareButton url={shareUrl}>
-            <TwitterIcon size={32} round />
+            <XIcon size={32} round />
           </TwitterShareButton>
           <LinkedinShareButton url={shareUrl}>
             <LinkedinIcon size={32} round />
