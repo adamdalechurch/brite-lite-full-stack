@@ -159,6 +159,9 @@ async function init() {
     let id = getIdFromURL();
 
     if ( id ) loadState( id );
+
+    // fire one mouse move event:
+    handleMain( { type: 'mousemove', pointerType: 'mouse' , target: document.querySelector( 'canvas' ) }, state, true );
 }
 
 function undo() {
