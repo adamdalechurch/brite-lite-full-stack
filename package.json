@@ -4,7 +4,7 @@
   "description": "A 3d Version of a child's game featuring colorful light-up legs.",
   "main": "index.js",
   "scripts": {
-    "dev": "cd app && npm run start && cd ../ && nodemon index.js",
+    "dev": "cd app && npm run build && cd ../ && nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
