@@ -7,9 +7,9 @@
 <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; font-src 'self' data:;">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <link type="text/css" rel="stylesheet" href="/assets/styles/main.css">
-<!-- stuff for social media -->:
+<!-- stuff for social media -->
 
- <!-- This stuff needs to by dynamic VVV -->
+<!-- This stuff needs to by dynamic VVV -->
 <meta property="og:description" content="3D Light Art Maker">
 <meta property="og:url" content="https://britepegs.com">
 <meta name="twitter:site" content="https://britepegs.com">
@@ -43,9 +43,14 @@
 </script>
 <!-- button opens a modal which is the root of the react app: -->
 <button id="modal-button">
-
-  <img src="/share.svg" alt="share" style="width: 20px; height: 20px;" />
+  <span class="emoji">🔗</span>
 </button> 
+
+<button id="donate-button">
+  <a href="https://www.paypal.com/donate/?business=93252PSTVXNJE&no_recurring=0&item_name=Coding+Things+In+Real+Life&currency_code=USD" target="_blank">
+    <span class="emoji">💖</span>
+  </a>
+</button>
 
 <!-- modal is hidden by default: -->
 <div id="modal" style="display: none;">
@@ -82,17 +87,42 @@
     width: 80%;
   }
 
-  #modal-button {
+  #modal-button, #donate-button {
     position: fixed;
     z-index: 1;
-    left: 0;
-    top: 0;
-    margin: 15px;
     padding: 10px;
     border: 1px solid #888;
-    background-color: #fefefe;
+    background-color: #333;
+    color: white;
     border-radius: 5px;
-    box-shadow: 0 0 5px 0 rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #modal-button .emoji {
+    font-size: 24px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+
+  #donate-button .emoji {
+    font-size: 24px;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+  }
+
+  #modal-button {
+    top: 5px;
+    left: 5px;
+  }
+
+  #donate-button {
+    top: 5px;
+    left: 65px;
+  }
+
+  #donate-button a {
+    color: hotpink;
+    text-decoration: none;
   }
 </style>
 </body>
