@@ -240,9 +240,11 @@ function handleMain( event, state, isPreview = false) {
         handleRemove( event, state ) :
         handleIt( event, state, isPreview );
 
-    if( isPreview ) {
+    let numPreviewsOnBoard = state.pegs.filter( peg => peg.userData.isPreview ).length;
+    if( numPreviewsOnBoard > 0 ) { 
         refireTimeout = setTimeout( () => {
-            state = handleMain( event, state, isPreview );
+            state = handleMain( event,  state );
+
         }, REFIRE_TIMEOUT_MS );
     }
 }
