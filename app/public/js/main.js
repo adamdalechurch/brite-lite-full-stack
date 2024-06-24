@@ -278,6 +278,7 @@ function initGUI() {
 
     //light:
     gui.add( state, 'lightPower', 0, 1000 ).step( 1 ).name( 'Light Power' ).onChange( () => setLightPower( state, state.lightPower ) );
+// a comment.
     
     // add keyup event to gui:
     return gui;
