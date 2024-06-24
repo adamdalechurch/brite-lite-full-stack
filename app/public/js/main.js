@@ -74,11 +74,10 @@ async function loadState( state, id ) {
         }
 
         let newPegs = dbState.pegs.map( peg => {
-            const shape = {
-                ...new Shape(),
-                ...state.shape
-            };
+            let shape = new Shape();
+            shape.shapeType = SHAPE_TYPES.circle;
             let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
+            shape.uuid = peg.uuid;
             return newPeg;
         });
 
