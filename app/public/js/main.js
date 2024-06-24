@@ -22,7 +22,7 @@ state = {
     shape: new Shape(),
 };
 
-const REFIRE_TIMEOUT_MS = 100, API_PATH = '/api';
+const REFIRE_TIMEOUT_MS = 150, API_PATH = '/api';
 
 function copyToClipboard( text ) {
     const el = document.createElement( 'textarea' );
@@ -243,6 +243,7 @@ function handleMain( event, state, isPreview = false) {
     if( isPreview ) {
         refireTimeout = setTimeout( () => {
             state = handleMain( event, state, isPreview );
+ 
         }, REFIRE_TIMEOUT_MS );
     }
 }
@@ -266,6 +267,9 @@ function initGUI() {
     gui.add( shape, 'deleting' );
     // gui.add( shape, 'rainbowColors' );
     gui.add( { share: openShare }, 'share' );
+
+    gui.add( { undo }, 'undo' );
+    gui.add( { redo }, 'redo' );
     
     // add keyup event to gui:
     return gui;

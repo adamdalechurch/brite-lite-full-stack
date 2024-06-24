@@ -7,6 +7,7 @@ import { adjustPosToFixedGrid } from './shapes.js';
 let isDirty = false;
 
 function drawBoard( pegs, scene ) {
+    console.log(pegs.length);
     for ( let i = 0; i < pegs.length; i++ ) {
         if ( pegs[ i ] && !pegs[ i ].userData.rendered ) {
             scene.add( pegs[ i ] );

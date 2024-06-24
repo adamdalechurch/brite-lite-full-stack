@@ -42,10 +42,26 @@ import {
 
 function Sharables() {
   const [shareUrl, setShareUrl] = useState(null);
+  const [msg, setMsg] = useState(null);
 
   // close modal via the dom
   function closeModal() {
     document.getElementById('modal').style.display = 'none';
+  }
+
+  function copyToClipboard() {
+    /* Get the text field */
+    var copyText = shareUrl
+
+    /* Select the text field */
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+    /* Copy the text inside the text field */
+    document.execCommand('copy');
+
+    /* Alert the copied text */
+    alert('URL copied to clipboard');
   }
 
   useEffect(() => {
@@ -55,9 +71,10 @@ function Sharables() {
       .then((session) => {
         if (session.artId) {
           // add 2 line breaks after BritePegs.com
-          setShareUrl(
+          setMsg(
             `Check out what I made on BritePegs.com: ${window.location.origin}/art/${session.artId}`
           );
+          setShareUrl(`${window.location.origin}/art/${session.artId}`);
         }
       });
   }, []);
@@ -71,61 +88,61 @@ function Sharables() {
     <div className="App">
       <header className="App-header">
         <div className="share-buttons">
-          <FacebookShareButton url={shareUrl}>
+          <FacebookShareButton url={msg}>
             <FacebookIcon size={32} round />
           </FacebookShareButton>
-          <TwitterShareButton url={shareUrl}>
+          <TwitterShareButton url={msg}>
             <XIcon size={32} round />
           </TwitterShareButton>
-          <LinkedinShareButton url={shareUrl}>
+          <LinkedinShareButton url={msg}>
             <LinkedinIcon size={32} round />
           </LinkedinShareButton>
-          <WhatsappShareButton url={shareUrl}>
+          <WhatsappShareButton url={msg}>
             <WhatsappIcon size={32} round />
           </WhatsappShareButton>
-          <TelegramShareButton url={shareUrl}>
+          <TelegramShareButton url={msg}>
             <TelegramIcon size={32} round />
           </TelegramShareButton>
-          <PinterestShareButton url={shareUrl}>
+          <PinterestShareButton url={msg}>
             <PinterestIcon size={32} round />
           </PinterestShareButton>
-          <RedditShareButton url={shareUrl}>
+          <RedditShareButton url={msg}>
             <RedditIcon size={32} round />
           </RedditShareButton>
-          <EmailShareButton url={shareUrl}>
+          <EmailShareButton url={msg}>
             <EmailIcon size={32} round />
           </EmailShareButton>
-          <TumblrShareButton url={shareUrl}>
+          <TumblrShareButton url={msg}>
             <TumblrIcon size={32} round />
           </TumblrShareButton>
-          <VKShareButton url={shareUrl}>
+          <VKShareButton url={msg}>
             <VKIcon size={32} round />
           </VKShareButton>
-          <OKShareButton url={shareUrl}>
+          <OKShareButton url={msg}>
             <OKIcon size={32} round />
           </OKShareButton>
-          <InstapaperShareButton url={shareUrl}>
+          <InstapaperShareButton url={msg}>
             <InstapaperIcon size={32} round />
           </InstapaperShareButton>
-          <PocketShareButton url={shareUrl}>
+          <PocketShareButton url={msg}>
             <PocketIcon size={32} round />
           </PocketShareButton>
-          <ViberShareButton url={shareUrl}>
+          <ViberShareButton url={msg}>
             <ViberIcon size={32} round />
           </ViberShareButton>
-          <WorkplaceShareButton url={shareUrl}>
+          <WorkplaceShareButton url={msg}>
             <WorkplaceIcon size={32} round />
           </WorkplaceShareButton>
-          <LineShareButton url={shareUrl}>
+          <LineShareButton url={msg}>
             <LineIcon size={32} round />
           </LineShareButton>
-          <WeiboShareButton url={shareUrl}>
+          <WeiboShareButton url={msg}>
             <WeiboIcon size={32} round />
           </WeiboShareButton>
-          <LivejournalShareButton url={shareUrl}>
+          <LivejournalShareButton url={msg}>
             <LivejournalIcon size={32} round />
           </LivejournalShareButton>
-          <MailruShareButton url={shareUrl}>
+          <MailruShareButton url={msg}>
             <MailruIcon size={32} round />
           </MailruShareButton>
           {/* close modal: */}
@@ -138,6 +155,34 @@ function Sharables() {
             &times;
           </a>
         </div>
+        <input 
+        type="text" 
+        className="url-text-input"
+        style={
+          { 
+            width: '100%',
+            padding: '10px',
+            fontSize: '16px',
+            marginBottom: '10px',
+            marginTop: '10px',
+            border: '1px solid black',
+            borderRadius: '5px',
+            fontFamily: 'courier'
+          }
+        } 
+        value={shareUrl}
+        onInput={(e) => setShareUrl(e.target.value)}
+        readOnly 
+      />
+        <button 
+          id="copy-button"
+          onClick={copyToClipboard}>
+          <a className='emoji' 
+          role='img' 
+          aria-label='clipboard'
+          > 📋
+          </a> Copy
+          </button>
       </header>
     </div>
   );
