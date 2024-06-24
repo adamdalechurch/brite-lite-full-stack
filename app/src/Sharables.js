@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FacebookShareButton,
   FacebookIcon,
@@ -41,8 +41,9 @@ import {
 } from 'react-share';
 
 function Sharables() {
-  const [shareUrl, setShareUrl] = useState(null);
+  const [shareUrl, setShareUrl] = useState();
   const [msg, setMsg] = useState(null);
+  const inputRef = useRef(null);
 
   // close modal via the dom
   function closeModal() {
@@ -50,21 +51,15 @@ function Sharables() {
   }
 
   function copyToClipboard() {
-    /* Get the text field */
-    var copyText = shareUrl
-
-    /* Select the text field */
+    var copyText = inputRef.current;
     copyText.select();
     copyText.setSelectionRange(0, 99999); /* For mobile devices */
-
-    /* Copy the text inside the text field */
     document.execCommand('copy');
-
-    /* Alert the copied text */
-    alert('URL copied to clipboard');
+    alert('Copied the text: ' + copyText.value);
   }
 
   useEffect(() => {
+    setShareUrl(window.location.href);
     // fetch the art id from the session:
     fetch('/api/session')
       .then((res) => res.json())
@@ -78,7 +73,6 @@ function Sharables() {
         }
       });
   }, []);
-
 
   if (!shareUrl) {
     return <div>Loading...</div>;
@@ -169,7 +163,8 @@ function Sharables() {
             borderRadius: '5px',
             fontFamily: 'courier'
           }
-        } 
+        }
+        ref={inputRef}
         value={shareUrl}
         onInput={(e) => setShareUrl(e.target.value)}
         readOnly 

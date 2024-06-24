@@ -76,6 +76,7 @@ function loadState( id ) {
 }
 
 function saveState(asShare = true) {
+    let url;
     return fetch( API_PATH + '/state', {
         method: 'POST',
         headers: {
@@ -95,7 +96,9 @@ function saveState(asShare = true) {
     })
     .then( res => res.json() )
     .then( res => {
-        let url = makeURL( res.id );
+        url = makeURL( res.id );
+    })
+    .finally( () => {
         copyToClipboard( url );
         if( asShare ) {
             minimizeGui();
