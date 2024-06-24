@@ -57,24 +57,28 @@ function getStateById( id ) {
         .then( res => res.json() );
 }
 
-function loadState( id ) {
+async function loadState( state, id ) {
     state.width = 1;
     state.height = 1;
     state.fillType = FILL_TYPES.solid;
     state.isFilled = true;
 
-    getStateById( id )
+    let promise = getStateById( id )
+    
     .then( dbState => {
+
         let newPegs = dbState.pegs.map( peg => {
             let shape = new Shape();
             shape.shapeType = SHAPE_TYPES.circle;
             let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
-            newPeg.uuid = peg.uuid;
+            shape.uu
             return newPeg;
         });
 
-        state = { ...state, pegs: newPegs };
-    });
+        return { ...state, pegs: newPegs };
+    })
+
+    return promise;
 }
 
 function saveState(asShare = true) {
@@ -163,7 +167,8 @@ async function init() {
 
     let id = getIdFromURL();
 
-    if ( id ) loadState( id );
+    if ( id ) 
+        state = await loadState( state, id );
 
     // fire one mouse move event:
     handleMain( { type: 'mousemove', pointerType: 'mouse' , target: document.querySelector( 'canvas' ) }, state, true );
