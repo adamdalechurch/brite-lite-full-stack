@@ -73,7 +73,7 @@ function loadState( id ) {
             return newPeg;
         });
 
-        state = { ...state, pegs: newPegs };
+        state.pegs = newPegs;
     });
 }
 
@@ -185,15 +185,12 @@ function redo() {
         let redoState = undoHistory.pop();
         
         stateHistory.push( { ...state, pegs: state.pegs } );
-        
-        state = {
-            ...state,
-            pegs: redoState.pegs.map( peg => {
-                peg.userData.rendered = false;
-                peg.userData.removed = peg.userData.isPreview;
-                return peg;
-            })
-        }
+
+        state.pegs = redoState.pegs.map( peg => {
+            peg.userData.rendered = false;
+            peg.userData.removed = peg.userData.isPreview;
+            return peg;
+        });
 
         removeStrayPegs( state );
     }
@@ -208,23 +205,18 @@ function buildStateFromHistory(redoState) {
     let unRemovedRedoStatePegs = redoState.pegs.filter( m => !m.userData.isPreview).length
 
     if(unRemovedStatePegs <= unRemovedRedoStatePegs) {
-        state = {
-            ...state,
-            pegs: redoState.pegs.map( peg => {
-                peg.userData.rendered = false;
-                peg.userData.removed = peg.userData.isPreview;
-                return peg;
-            })
-        }
+        state.pegs = redoState.pegs.map( peg => {
+            peg.userData.rendered = false;
+            peg.userData.removed = peg.userData.isPreview;
+            return peg;
+        });
+
     } else {
-   state = {
-        ...state,
-        pegs:  state.pegs.map( peg => {
+        state.pegs = state.pegs.map( peg => {
             let prevPeg = redoState.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
             peg.userData.removed = !prevPeg || prevPeg.userData.removed || peg.userData.isPreview;
             return peg;
-        })
-    };
+        });
     }
 }
 
