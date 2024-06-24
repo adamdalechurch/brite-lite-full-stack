@@ -139,7 +139,7 @@ app.get('/art/:id', injectMetaTags, (req, res) => {
 
 // Allowed file extensions
 const allowedExtensions = [
-    '.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.json', '.txt', '.ico'
+    '.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.json', '.txt', '.ico', '.ttf', '.woff', '.woff2'
 ];
 
 // Catch-all route to serve static files
