@@ -5,7 +5,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import {
     initPegboard, loadCase,
-    addSoftLight, setupBackground, initScene, 
+    addSoftLight, setLightPower, setupBackground, initScene, 
     setupPostProcessing, initControls, 
     addEventListeners, initRenderer, handleIt, handleRemove,
     animate, Shape,
@@ -20,6 +20,8 @@ state = {
     numNewPegs: 0,
     pegs: [],
     shape: new Shape(),
+    light: null,
+    lightPower: 200,
 };
 
 const REFIRE_TIMEOUT_MS = 150, API_PATH = '/api';
@@ -140,7 +142,7 @@ async function init() {
     // add a default light to test the post processing:
     setupBackground( state.scene );
 
-    addSoftLight( state.scene );
+    state = addSoftLight( state );
 
     state = setupPostProcessing( state );
 
@@ -260,8 +262,8 @@ function initGUI() {
     gui.add( shape, 'isBordered' );
     gui.add( shape, 'fillType', Object.values( FILL_TYPES ) );
     // gui.add( shape, 'borderType', Object.values( BORDER_TYPES ) );
-    gui.add( shape, 'width', 1, 50 ).step( 1 );
-    gui.add( shape, 'height', 1, 50 ).step( 1 );
+    gui.add( shape, 'width', 1, 20 ).step( 1 ).max( 20 ).min( 1 );
+    gui.add( shape, 'height', 1, 20 ).step( 1 ).max( 20 ).min( 1 );
 
     gui.add( shape, 'rotation', 0, 359 );
     gui.addColor( shape, 'fillColor' );
@@ -273,6 +275,9 @@ function initGUI() {
 
     gui.add( { undo }, 'undo' );
     gui.add( { redo }, 'redo' );
+
+    //light:
+    gui.add( state, 'lightPower', 0, 1000 ).step( 1 ).name( 'Light Power' ).onChange( () => setLightPower( state, state.lightPower ) );
     
     // add keyup event to gui:
     return gui;

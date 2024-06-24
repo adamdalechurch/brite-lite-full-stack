@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { texture, lights, normalMap, MeshPhongNodeMaterial} from 'three/nodes';
+import { texture, lights, normalMap, MeshPhongNodeMaterial } from 'three/nodes';
 import { flatRectangleGeometry } from './geometries.js';
 
 let pegboard;
@@ -11,7 +11,7 @@ normalMapTexture.wrapS = THREE.RepeatWrapping;
 normalMapTexture.wrapT = THREE.RepeatWrapping;
     
 // repeat:
-normalMapTexture.repeat.set( 16, 26 );
+normalMapTexture.repeat.set( 8, 13 );
 
 function initPegboard( state ) {
     pegboard = new THREE.Mesh( flatRectangleGeometry, new MeshPhongNodeMaterial( { color: 0X808080 } ) );
@@ -30,14 +30,14 @@ function loadCase( objLoader, scene ) {
     const whiteLightsNode = lights( [ ] );
     objLoader.load( 'brite-lite.case.obj', function ( object ) {
         const casing = object.children[ 0 ];
-        casing.scale.setScalar( 2 );
-        casing.position.z = -3.4;
+        casing.scale.setScalar( 1 );
+        casing.position.z = -1.7;
         
         //rotate:
         casing.rotation.y = Math.PI * - 0.5;        
         casing.material.lightsNode = whiteLightsNode;
         casing.material = new MeshPhongNodeMaterial( { color: 0XFFFFFF, shininess: 1000 } );
-
+            
         scene.add( casing );
 
     });

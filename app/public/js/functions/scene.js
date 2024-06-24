@@ -2,14 +2,26 @@
 import * as THREE from 'three';
 import { color, rangeFog, mix, oscSine, timerLocal, pmremTexture, float } from 'three/nodes';
 
-function addSoftLight( scene ) {
+function addSoftLight( state ) {
+    const { scene } = state;
     // use a spotlight instead:
     const softLight = new THREE.SpotLight( 0x808080, 1, 100 );
-    softLight.power = 200;
+    softLight.power = state.lightPower;
     softLight.position.set( 0, 0, 9 );
     softLight.angle = Math.PI * 0.5;
     softLight.penumbra = 0.5;
     scene.add( softLight );
+
+    state.softLight = softLight;
+
+    return state;
+}
+
+function setLightPower( state, power ) {
+    state.lightPower = power;
+    state.softLight.power = power;
+
+    return state;
 }
 
 async function setupBackground( scene ) {
@@ -41,4 +53,4 @@ function initScene( state ) {
     return state;
 }
 
-export { addSoftLight, setupBackground, initScene };
+export { addSoftLight, setupBackground, initScene, setLightPower };
