@@ -284,9 +284,13 @@ function initGUI() {
     return gui;
 }
 
-function minimizeGui() {
+export function minimizeGui() {
     // should be a built in method
     gui.close();
+}
+
+export function openGui() {
+    gui.open();
 }
 
 function refreshReactApp() {
@@ -323,6 +327,11 @@ export function openModal(){
 
 export function closeModal(){
     document.getElementById("modal").style.display = "none";
+}
+
+export function closeSplashModal(){
+    document.getElementById("splash-modal").style.display = "none";
+    openGui();
 }
 
 // use the lastSaveId
