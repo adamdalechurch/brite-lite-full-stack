@@ -57,9 +57,9 @@ function getStateById( id ) {
         .then( res => res.json() );
 }
 
-async function loadState( id ) {
+async function loadState( state, id ) {
 
-    getStateById( id )
+    let promise = getStateById( id )
     .then( dbState => {
         state = {
             ...state,
@@ -80,6 +80,8 @@ async function loadState( id ) {
 
         return { ...state, pegs: newPegs };
     })
+
+    return promise;
 }
 
 function saveState(asShare = true) {
@@ -169,7 +171,7 @@ async function init() {
     let id = getIdFromURL();
 
     if ( id ) 
-        state = await loadState( id );
+        state = await loadState( state, id );
 
     // fire one mouse move event:
     handleMain( { type: 'mousemove', pointerType: 'mouse' , target: document.querySelector( 'canvas' ) }, state, true );
