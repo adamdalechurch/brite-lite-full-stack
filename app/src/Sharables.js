@@ -154,7 +154,7 @@ function Sharables() {
         className="url-text-input"
         style={
           { 
-            width: '100%',
+            width: 'calc(100% - 20px)',
             padding: '10px',
             fontSize: '16px',
             marginBottom: '10px',
