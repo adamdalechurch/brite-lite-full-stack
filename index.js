@@ -1,11 +1,11 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-// const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const session = require('express-session');
 require('dotenv').config();
+const crypto = require('crypto');
 
 const State = require('./models/state');
 const Preview = require('./models/preview');
@@ -13,7 +13,7 @@ const Preview = require('./models/preview');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-//init session
+// Initialize session
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -44,16 +44,7 @@ const injectMetaTags = (req, res, next) => {
 
 // Middleware
 app.use(bodyParser.json({ limit: '100mb' }));
-app.use(express.static(path.join(__dirname, 'app/build'))); // Serves static files
-
-// Rate limiting
-// const limiter = rateLimit({
-//     windowMs: 15 * 60 * 1000, // 15 minutes
-//     max: 100, // Limit each IP to 100 requests per windowMs
-//     message: 'Too many requests, please try again later.'
-// });
-
-// app.use(limiter);
+app.use(express.static(path.join(__dirname, 'app/build'))); // Serve static files
 
 // API Routes
 app.post('/api/state', async (req, res) => {
@@ -88,7 +79,7 @@ app.get('/api/state/:id', async (req, res) => {
     }
 });
 
-// for last saved session:
+// For last saved session
 app.get('/api/session', (req, res) => {
     res.json({ artId: req.session.artId });
 });
@@ -104,13 +95,21 @@ app.get('/api/preview/:id', async (req, res) => {
         const base64Data = preview.base64Image.replace(/^data:image\/png;base64,/, "");
         const file = Buffer.from(base64Data, 'base64');
 
+        // Generate an ETag based on the file contents
+        const etag = crypto.createHash('md5').update(file).digest('hex');
+
+        // Check if the client has a cached version
+        if (req.headers['if-none-match'] === etag) {
+            return res.status(304).end();
+        }
+
         res.writeHead(200, {
             'Content-Type': 'image/png',
             'Content-Length': file.length,
-            // should be used in html img tag:
-            "Cache-Control": "public, max-age=31536000",
-            "Expires": new Date(Date.now() + 31536000000).toUTCString()
-            // 'Content-Disposition': `attachment; filename="britepegs-${req.params.id}.png"`
+            'Cache-Control': 'public, max-age=31536000',
+            'Expires': new Date(Date.now() + 31536000000).toUTCString(),
+            'ETag': etag,
+            'Last-Modified': preview.updatedAt.toUTCString() // Assuming preview model has an updatedAt field
         });
         res.end(file);
 
