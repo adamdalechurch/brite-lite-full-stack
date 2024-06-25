@@ -69,7 +69,6 @@ function loadState( id ) {
             let shape = new Shape();
             shape.shapeType = SHAPE_TYPES.circle;
             let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
-            newPeg.uuid = peg.uuid;
             return newPeg;
         });
 
