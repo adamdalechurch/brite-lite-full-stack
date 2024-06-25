@@ -15,7 +15,6 @@ import {
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 let refireTimeout, gui, lastSaveId = '',
-
 state = {
     numNewPegs: 0,
     pegs: [],
@@ -57,24 +56,24 @@ function getStateById( id ) {
         .then( res => res.json() );
 }
 
+
 function loadState( id ) {
     state.width = 1;
     state.height = 1;
     state.fillType = FILL_TYPES.solid;
     state.isFilled = true;
 
-    getStateById( id )
-    .then( dbState => {
-        let newPegs = dbState.pegs.map( peg => {
+    getStateById(id).then(dbState => {
+        const newPegs = dbState.pegs.map(peg => {
             let shape = new Shape();
             shape.shapeType = SHAPE_TYPES.circle;
-            let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
-            if(!newPeg) return;
+            let newPeg = shape.draw(peg.position, state, false, '#' + peg.color)[0];
+            if (!newPeg) return;
             newPeg.uuid = peg.uuid;
             return newPeg;
-        });
+        }).filter(peg => peg);
 
-        state = { ...state, pegs: newPegs };
+        state.pegs = newPegs; // Directly updating the pegs property
     });
 }
 
@@ -171,60 +170,67 @@ async function init() {
 }
 
 function undo() {
-    if ( stateHistory.length > 1 ) {
-        let prevState = stateHistory.pop();
-        undoHistory.push( { ...state, pegs: state.pegs } );
+    if (stateHistory.length > 1) {
+        let prevState = stateHistory.pop();  // Remove the last state from the history
+        undoHistory.push({ ...state });      // Save the current state to the undo history before changing
 
-        buildStateFromHistory( prevState );
+        state = prevState;  // Restore the previous state directly
 
-        removeStrayPegs( state );
+        buildStateFromHistory(prevState);    // Assume this function correctly re-applies the state
+        removeStrayPegs(state);  // Clean up any inconsistent state parts if necessary
     }
 }
 
 function redo() {
-    if ( undoHistory.length > 0 ) {
-        let redoState = undoHistory.pop();
-        
-        stateHistory.push( { ...state, pegs: state.pegs } );
-        
-        state = {
-            ...state,
-            pegs: redoState.pegs.map( peg => {
-                peg.userData.rendered = false;
-                peg.userData.removed = peg.userData.isPreview;
-                return peg;
-            })
-        }
+    if (undoHistory.length > 0) {
+        let redoState = undoHistory.pop();   // Get the last undone state
 
-        removeStrayPegs( state );
+        stateHistory.push({ ...state });     // Save the current state to the history before changing
+
+        state = { ...state, pegs: redoState.pegs.map(peg => {
+            return {
+                ...peg,
+                userData: {
+                    ...peg.userData,
+                    rendered: false,               // Reset rendering flag
+                    removed: peg.userData.isPreview  // Handle preview flag
+                }
+            };
+        })};
+
+        removeStrayPegs(state);  // Clean up any stray pegs that might be incorrectly placed
     }
 }
+
 function buildStateFromHistory(redoState) {
-    if ( redoState.length === 0 ) return;
-        // compare number of non removed pegs
-        // in state vs op
+    if (!redoState || redoState.pegs.length === 0) return;
 
-    let unRemovedStatePegs = state.pegs.filter( m => !m.userData.isPreview).length
-    let unRemovedRedoStatePegs = redoState.pegs.filter( m => !m.userData.isPreview).length
+    // Calculate the count of non-removed pegs in current and redo states
+    let unRemovedStatePegs = state.pegs.filter(peg => !peg.userData.isPreview && !peg.userData.removed).length;
+    let unRemovedRedoStatePegs = redoState.pegs.filter(peg => !peg.userData.isPreview && !peg.userData.removed).length;
 
-    if(unRemovedStatePegs <= unRemovedRedoStatePegs) {
-        state = {
-            ...state,
-            pegs: redoState.pegs.map( peg => {
-                peg.userData.rendered = false;
-                peg.userData.removed = peg.userData.isPreview;
-                return peg;
-            })
-        }
+    if (unRemovedStatePegs <= unRemovedRedoStatePegs) {
+        // More non-removed pegs in the redo state or equal: take pegs from redoState
+        state.pegs = redoState.pegs.map(peg => ({
+            ...peg,
+            userData: {
+                ...peg.userData,
+                rendered: false,              // Reset rendering flag
+                removed: peg.userData.isPreview  // Set removed based on preview status
+            }
+        }));
     } else {
-        state = {
-        ...state,
-        pegs:  state.pegs.map( peg => {
-            let prevPeg = redoState.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
-            peg.userData.removed = !prevPeg || prevPeg.userData.removed || peg.userData.isPreview;
-            return peg;
-        })
-    };
+        // More non-removed pegs in the current state: update pegs based on their existence in redoState
+        state.pegs = state.pegs.map(peg => {
+            let prevPeg = redoState.pegs.find(p => p.uuid === peg.uuid);
+            return {
+                ...peg,
+                userData: {
+                    ...peg.userData,
+                    removed: !prevPeg || prevPeg.userData.removed || peg.userData.isPreview
+                }
+            };
+        });
     }
 }
 
