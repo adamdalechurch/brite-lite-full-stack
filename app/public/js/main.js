@@ -69,10 +69,12 @@ function loadState( id ) {
             let shape = new Shape();
             shape.shapeType = SHAPE_TYPES.circle;
             let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
+            if(!newPeg) return;
+            newPeg.uuid = peg.uuid;
             return newPeg;
         });
 
-        state.pegs = newPegs;
+        state = { ...state, pegs: newPegs };
     });
 }
 
@@ -184,17 +186,19 @@ function redo() {
         let redoState = undoHistory.pop();
         
         stateHistory.push( { ...state, pegs: state.pegs } );
-
-        state.pegs = redoState.pegs.map( peg => {
-            peg.userData.rendered = false;
-            peg.userData.removed = peg.userData.isPreview;
-            return peg;
-        });
+        
+        state = {
+            ...state,
+            pegs: redoState.pegs.map( peg => {
+                peg.userData.rendered = false;
+                peg.userData.removed = peg.userData.isPreview;
+                return peg;
+            })
+        }
 
         removeStrayPegs( state );
     }
 }
-
 function buildStateFromHistory(redoState) {
     if ( redoState.length === 0 ) return;
         // compare number of non removed pegs
@@ -204,18 +208,23 @@ function buildStateFromHistory(redoState) {
     let unRemovedRedoStatePegs = redoState.pegs.filter( m => !m.userData.isPreview).length
 
     if(unRemovedStatePegs <= unRemovedRedoStatePegs) {
-        state.pegs = redoState.pegs.map( peg => {
-            peg.userData.rendered = false;
-            peg.userData.removed = peg.userData.isPreview;
-            return peg;
-        });
-
+        state = {
+            ...state,
+            pegs: redoState.pegs.map( peg => {
+                peg.userData.rendered = false;
+                peg.userData.removed = peg.userData.isPreview;
+                return peg;
+            })
+        }
     } else {
-        state.pegs = state.pegs.map( peg => {
+        state = {
+        ...state,
+        pegs:  state.pegs.map( peg => {
             let prevPeg = redoState.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
             peg.userData.removed = !prevPeg || prevPeg.userData.removed || peg.userData.isPreview;
             return peg;
-        });
+        })
+    };
     }
 }
 
