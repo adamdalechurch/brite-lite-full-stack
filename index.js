@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const session = require('express-session');
@@ -47,13 +47,13 @@ app.use(bodyParser.json({ limit: '100mb' }));
 app.use(express.static(path.join(__dirname, 'app/build'))); // Serves static files
 
 // Rate limiting
-const limiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Too many requests, please try again later.'
-});
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     max: 100, // Limit each IP to 100 requests per windowMs
+//     message: 'Too many requests, please try again later.'
+// });
 
-app.use(limiter);
+// app.use(limiter);
 
 // API Routes
 app.post('/api/state', async (req, res) => {
