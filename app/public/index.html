@@ -80,7 +80,15 @@
   <span id="close-splash" style="color: white; float: right; font-size: 28px; font-weight: bold; display: block;">&times;</span>
   <div id="splash-root"></div>  
 </div>
-<script type="module" src="/js/main.js"></script>
+<!-- <script type="module" src='https://britepegs.com/js/main.js'></script>   -->
+<script type="module">
+  let basePath = window.location.pathname.includes('/art') ? '' : '/art';
+  let script = document.createElement('script');
+  script.src = `${basePath}/js/main.js`;
+  script.type = 'module';
+  document.body.appendChild(script);
+</script>
+
 <script type="module">
   import { openShare, closeModal, closeSplashModal } from './js/main.js';
   const modalButton = document.getElementById('modal-button');
