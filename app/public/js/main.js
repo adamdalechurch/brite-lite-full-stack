@@ -62,7 +62,6 @@ function loadState( id ) {
     state.height = 1;
     state.fillType = FILL_TYPES.solid;
     state.isFilled = true;
-
     getStateById( id )
     .then( dbState => {
         let newPegs = dbState.pegs.map( peg => {
@@ -74,7 +73,7 @@ function loadState( id ) {
             return newPeg;
         });
 
-        state = { ...state, pegs: newPegs };
+        state = { numNewPegs: 0, pegs: newPegs, shape: new Shape(), light: null, lightPower: 200 };
     });
 }
 
@@ -188,12 +187,15 @@ function redo() {
         stateHistory.push( { ...state, pegs: state.pegs } );
         
         state = {
-            ...state,
             pegs: redoState.pegs.map( peg => {
                 peg.userData.rendered = false;
                 peg.userData.removed = peg.userData.isPreview;
                 return peg;
-            })
+            }),
+            numNewPegs: redoState.numNewPegs,
+            shape: state.shape,
+            light: state.light,
+            lightPower: state.lightPower
         }
 
         removeStrayPegs( state );
@@ -209,12 +211,15 @@ function buildStateFromHistory(redoState) {
 
     if(unRemovedStatePegs <= unRemovedRedoStatePegs) {
         state = {
-            ...state,
             pegs: redoState.pegs.map( peg => {
                 peg.userData.rendered = false;
                 peg.userData.removed = peg.userData.isPreview;
                 return peg;
-            })
+            }),
+            numNewPegs: state.numNewPegs,
+            shape: state.shape,
+            light: state.light,
+            lightPower: state.lightPower
         }
     } else {
         state = {
