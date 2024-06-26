@@ -57,24 +57,26 @@ function getStateById( id ) {
         .then( res => res.json() );
 }
 
-function loadState( id ) {
+async function loadState( state, id ) {
     state.width = 1;
     state.height = 1;
     state.fillType = FILL_TYPES.solid;
     state.isFilled = true;
 
-    getStateById( id )
-    .then( dbState => {
-        let newPegs = dbState.pegs.map( peg => {
-            let shape = new Shape();
-            shape.shapeType = SHAPE_TYPES.circle;
-            let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
-            newPeg.uuid = peg.uuid;
-            return newPeg;
-        });
+    let dbState = await getStateById( id );
 
-        state = { ...state, pegs: newPegs };
-    });
+    let newPegs = dbState.pegs.map( peg => {
+        let shape = new Shape();
+        shape.shapeType = SHAPE_TYPES.circle;
+        let newPeg = shape.draw( peg.position, state, false, '#'+peg.color )[0];
+        newPeg.uuid = peg.uuid;
+        return newPeg;
+    }
+    );
+
+    state.pegs = newPegs;
+
+    return state;
 }
 
 function saveState(asShare = true) {
@@ -154,8 +156,8 @@ async function init() {
 
     // ctrl to hold
     window.addEventListener( 'keydown', ( event ) => {
-        if( event.ctrlKey && event.key.toLowerCase() === 'z' ) undo();
-        if( event.ctrlKey && event.key.toLowerCase() === 'y' ) redo();
+        if( event.ctrlKey && event.key.toLowerCase() === 'z' ) undo( state );
+        if( event.ctrlKey && event.key.toLowerCase() === 'y' ) redo( state )
     });
 
     window.addEventListener( 'click', ( event ) => handleMain( event, state ) );
@@ -163,69 +165,60 @@ async function init() {
 
     let id = getIdFromURL();
 
-    if ( id ) loadState( id );
+    if ( id ) state = await loadState( state, id );
 
     // fire one mouse move event:
     handleMain( { type: 'mousemove', pointerType: 'mouse' , target: document.querySelector( 'canvas' ) }, state, true );
+
+    document.getElementById('undo-button').addEventListener('click', (event) => { undo(state) });
+    document.getElementById('redo-button').addEventListener('click', (event) => { redo(state) });
 }
 
-function undo() {
+export function undo( state ) {    
     if ( stateHistory.length > 1 ) {
         let prevState = stateHistory.pop();
-        undoHistory.push( { ...state, pegs: state.pegs } );
 
-        buildStateFromHistory( prevState );
+        undoHistory.push( { ...state } );
 
-        removeStrayPegs( state );
+        state = buildStateFromHistory( state, prevState );
+
+        state = removeStrayPegs( state );
     }
 }
 
-function redo() {
+export function redo( state ) {
     if ( undoHistory.length > 0 ) {
         let redoState = undoHistory.pop();
         
-        stateHistory.push( { ...state, pegs: state.pegs } );
+        stateHistory.push( { ...state,  } );
         
-        state = {
-            ...state,
-            pegs: redoState.pegs.map( peg => {
-                peg.userData.rendered = false;
-                peg.userData.removed = peg.userData.isPreview;
-                return peg;
-            })
-        }
+        state = buildStateFromHistory( state, redoState );
 
-        removeStrayPegs( state );
+        state = removeStrayPegs( state );
     }
 }
 
-function buildStateFromHistory(redoState) {
+function buildStateFromHistory( state, redoState ) {
     if ( redoState.length === 0 ) return;
-        // compare number of non removed pegs
-        // in state vs op
 
     let unRemovedStatePegs = state.pegs.filter( m => !m.userData.isPreview).length
     let unRemovedRedoStatePegs = redoState.pegs.filter( m => !m.userData.isPreview).length
 
     if(unRemovedStatePegs <= unRemovedRedoStatePegs) {
-        state = {
-            ...state,
-            pegs: redoState.pegs.map( peg => {
-                peg.userData.rendered = false;
-                peg.userData.removed = peg.userData.isPreview;
-                return peg;
-            })
-        }
+        state.pegs = redoState.pegs.map( peg => {
+            peg.userData.rendered = false;
+            peg.userData.removed = peg.userData.isPreview;
+            return peg;
+        });
     } else {
-   state = {
-        ...state,
-        pegs:  state.pegs.map( peg => {
+        state.pegs = state.pegs.map( peg => {
             let prevPeg = redoState.pegs.find( prevPeg => prevPeg.uuid === peg.uuid );
             peg.userData.removed = !prevPeg || prevPeg.userData.removed || peg.userData.isPreview;
             return peg;
-        })
-    };
+        });
     }
+
+    return state;
 }
 
 function handleMain( event, state, isPreview = false) {
@@ -273,8 +266,8 @@ function initGUI() {
     // gui.add( shape, 'rainbowColors' );
     gui.add( { share: openShare }, 'share' );
 
-    gui.add( { undo }, 'undo' );
-    gui.add( { redo }, 'redo' );
+    // gui.add( { undo }, 'undo' );
+    // gui.add( { redo }, 'redo' );
 
     //light:
     gui.add( state, 'lightPower', 0, 1000 ).step( 1 ).name( 'Light Power' ).onChange( () => setLightPower( state, state.lightPower ) );

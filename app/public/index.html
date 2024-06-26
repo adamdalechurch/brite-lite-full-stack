@@ -65,6 +65,15 @@
   </a>
 </button>
 
+<!-- mobile only undo/redo buttons: -->
+<button id="undo-button">
+  <span class="emoji">↩️</span>
+</button>
+
+<button id="redo-button">
+  <span class="emoji">↪️</span>
+</button>
+
 <!-- modal is hidden by default: -->
 <div id="modal" style="display: none;">
   <!-- modal close button -->
@@ -74,7 +83,7 @@
 </div>
 <script type="module" src="/js/main.js"></script>
 <script type="module">
-  import { openShare, closeModal } from '/js/main.js';
+  import { openShare, closeModal } from './js/main.js';
   const modalButton = document.getElementById('modal-button');
   const close = document.getElementById('close');
   modalButton.addEventListener('click', openShare);
@@ -100,7 +109,7 @@
     width: 80%;
   }
 
-  #modal-button, #donate-button, #copy-button {
+  #modal-button, #donate-button, #copy-button, #undo-button, #redo-button {
     position: fixed;
     z-index: 1;
     padding: 10px;
@@ -113,7 +122,7 @@
     justify-content: center;
   }
 
-  #modal-button .emoji, #copy-button .emoji {
+  #modal-button .emoji, #copy-button .emoji, #undo-button .emoji, #redo-button .emoji{
     font-size: 24px;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
   }
@@ -133,12 +142,31 @@
     left: 65px;
   }
 
+  #undo-button {
+    top: 5px;
+    right: 65px;
+    display: none;
+  }
+
+  #redo-button {
+    top: 5px;
+    right: 5px;
+    display: none;
+  }
+
   #donate-button a {
     color: hotpink;
     text-decoration: none;
   }
 
   #copy-button{ position: static !important; }
+
+  /* mobile rule to display undo/redo buttons: */
+  @media only screen and (max-width: 640px) {
+    #undo-button, #redo-button {
+      display: block;
+    }
+  }
 </style>
 </body>
 </html>

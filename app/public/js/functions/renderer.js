@@ -174,6 +174,8 @@ function removeStrayPegs( state ) {
     pegsNotInState.forEach( peg => {
         state.scene.remove( peg );
     });
+
+    return state;
 }
 
 export { addShapeAtMousePosition, clearAllPreviews, drawShape, getMousePosOnTarget, drawBoard, initRenderer, handleIt, handleRemove, animate, removeStrayPegs };
