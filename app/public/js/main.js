@@ -169,9 +169,12 @@ async function init() {
 
     // fire one mouse move event:
     handleMain( { type: 'mousemove', pointerType: 'mouse' , target: document.querySelector( 'canvas' ) }, state, true );
-
+    const modalButton = document.getElementById('modal-button');
+    const close = document.getElementById('close');
     document.getElementById('undo-button').addEventListener('click', (event) => { undo(state) });
     document.getElementById('redo-button').addEventListener('click', (event) => { redo(state) });
+    modalButton.addEventListener('click', (event) => { openShare() });
+    close.addEventListener('click', (event) => { closeModal() });
 }
 
 export function undo( state ) {    

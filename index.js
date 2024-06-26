@@ -134,6 +134,9 @@ app.get('/art/:id', injectMetaTags, (req, res) => {
 
         const updatedHtml = data.replace('</head>', `${req.metaTags}</head>`);
 
+        // add this artid to the session:
+        req.session.artId = req.params.id;
+
         res.send(updatedHtml);
     });
 });
